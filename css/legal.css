@@ -1,0 +1,130 @@
+/* =========================================================
+   StudyFlow — Páginas legales (términos y privacidad)
+   Requiere css/styles.css.
+   ========================================================= */
+
+.legal-page {
+  background: var(--color-background);
+}
+
+.legal {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 24px 72px;
+}
+
+.legal__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.legal h1 {
+  margin-top: 8px;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 800;
+}
+
+.legal__updated {
+  margin-top: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.legal__toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.legal__toc a {
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+}
+
+.legal__toc a:hover,
+.legal__toc a:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.legal__highlight {
+  margin-top: 28px;
+  padding: 16px 18px;
+  border: 1px solid rgba(41, 214, 221, 0.35);
+  border-radius: var(--radius-md, 14px);
+  background: rgba(41, 214, 221, 0.08);
+  line-height: 1.6;
+}
+
+.legal section {
+  margin-top: 36px;
+  scroll-margin-top: 90px;
+}
+
+.legal h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.legal p,
+.legal li {
+  margin-top: 10px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.legal ul {
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.legal strong {
+  color: var(--color-text);
+}
+
+.legal a:not(.btn) {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.legal a:not(.btn):hover {
+  text-decoration: underline;
+}
+
+.legal code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.85em;
+}
+
+.legal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 44px;
+}
+
+.legal-footer {
+  padding: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.legal-footer a {
+  color: var(--color-text-secondary);
+}
+
+.legal-footer a:hover,
+.legal-footer a[aria-current="page"] {
+  color: var(--color-primary);
+}

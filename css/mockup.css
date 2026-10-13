@@ -1,0 +1,357 @@
+/* =========================================================
+   StudyFlow — Mockup de la app (landing, iniciar sesión, crear cuenta)
+   Réplica en HTML/CSS de la vista previa del diseño de Figma.
+   Lo genera js/mockup.js.
+   ========================================================= */
+
+.app-mock {
+  --mock-bg: #0b1129;
+  --mock-card: rgba(255, 255, 255, 0.035);
+  --mock-line: rgba(255, 255, 255, 0.08);
+  --mock-muted: #7c87a3;
+  width: 100%;
+  max-width: 490px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--mock-bg);
+  box-shadow: 0 30px 70px rgba(2, 6, 23, 0.65), 0 0 90px rgba(79, 70, 229, 0.12);
+  overflow: hidden;
+  color: #e7ebf5;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.app-mock svg {
+  flex-shrink: 0;
+}
+
+/* Barra del navegador */
+.app-mock__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: #0e1531;
+  border-bottom: 1px solid var(--mock-line);
+}
+
+.app-mock__lights {
+  display: flex;
+  gap: 6px;
+}
+
+.app-mock__lights i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.app-mock__lights i:nth-child(2) { background: #f59e0b; }
+.app-mock__lights i:nth-child(3) { background: #22c55e; }
+
+.app-mock__url {
+  flex: 1;
+  padding: 3px 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--mock-muted);
+  text-align: center;
+  font-size: 0.68rem;
+}
+
+.app-mock__spark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(41, 214, 221, 0.12);
+  color: #29d6dd;
+}
+
+/* Cuerpo */
+.app-mock__body {
+  display: flex;
+}
+
+.app-mock__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 9px;
+  border-right: 1px solid var(--mock-line);
+  color: var(--mock-muted);
+  list-style: none;
+  margin: 0;
+}
+
+.app-mock__side li {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.app-mock__side li.is-active {
+  background: rgba(41, 214, 221, 0.15);
+  box-shadow: 0 0 0 1px rgba(41, 214, 221, 0.35);
+  color: #29d6dd;
+}
+
+.app-mock__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.app-mock__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.app-mock__card {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--mock-line);
+  background: var(--mock-card);
+}
+
+.app-mock__card--timer {
+  border-color: rgba(96, 165, 250, 0.45);
+  background: linear-gradient(150deg, rgba(37, 99, 235, 0.5), rgba(30, 41, 110, 0.55));
+}
+
+.app-mock__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-mock__head > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c3cbe0;
+}
+
+.app-mock__head > span svg {
+  color: #818cf8;
+}
+
+.app-mock__card--timer .app-mock__head > span svg {
+  color: #29d6dd;
+}
+
+.app-mock__head small {
+  color: var(--mock-muted);
+  font-size: 0.68rem;
+}
+
+.app-mock__pill {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(41, 214, 221, 0.18);
+  color: #29d6dd;
+  font-style: normal;
+  font-size: 0.66rem;
+}
+
+.app-mock__time {
+  display: block;
+  margin: 8px 0 8px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.app-mock__track {
+  display: block;
+  height: 3px;
+  margin-bottom: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.app-mock__stop {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(41, 214, 221, 0.2);
+  color: #29d6dd;
+}
+
+/* Semana */
+.app-mock__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.app-mock__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.62rem;
+}
+
+.app-mock__day b {
+  color: var(--mock-muted);
+  font-weight: 500;
+}
+
+.app-mock__day i {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-style: normal;
+}
+
+.app-mock__day.is-today i {
+  background: #29d6dd;
+  color: #04131a;
+  font-weight: 800;
+}
+
+.app-mock__day em {
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #818cf8;
+}
+
+/* Tareas */
+.app-mock__tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-mock__tasks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.app-mock__tasks li::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: rgb(var(--t));
+}
+
+.app-mock__tasks span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-mock__tasks em {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(var(--t), 0.16);
+  color: rgb(var(--t));
+  font-style: normal;
+  font-size: 0.6rem;
+}
+
+.app-mock__tasks li.is-done {
+  opacity: 0.6;
+}
+
+.app-mock__tasks li.is-done span {
+  text-decoration: line-through;
+  color: var(--mock-muted);
+}
+
+.app-mock__tasks li.is-done::before {
+  opacity: 0.5;
+}
+
+.app-mock__tasks li > svg {
+  color: #29d6dd;
+}
+
+.app-mock__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #29d6dd;
+}
+
+.app-mock__card.app-mock__head > span svg {
+  color: #f59e0b;
+}
+
+/* Barra de estado */
+.app-mock__status {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid var(--mock-line);
+  color: var(--mock-muted);
+  font-size: 0.64rem;
+}
+
+.app-mock__status > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-mock__status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #29d6dd;
+}
+
+.app-mock__status b {
+  color: #29d6dd;
+  font-weight: 600;
+}
+
+.app-mock__sep {
+  width: 1px;
+  height: 10px;
+  background: var(--mock-line);
+}
+
+@media (max-width: 480px) {
+  .app-mock {
+    font-size: 0.64rem;
+  }
+
+  .app-mock__side {
+    display: none;
+  }
+
+  .app-mock__row {
+    grid-template-columns: 1fr;
+  }
+}
