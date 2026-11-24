@@ -117,11 +117,14 @@
 
 /* ---------- Hero mockup ---------- */
 .hero__mockup {
-  /* Es una imagen de referencia: no se puede seleccionar, arrastrar ni pulsar */
+  /* Es una imagen de referencia: no se puede seleccionar, arrastrar ni pulsar.
+     Solo reacciona al pasar el mouse con un brillo suave (ver mockup.css). */
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: default;
   display: flex;
   justify-content: center;
 }
@@ -403,3 +406,37 @@
   }
 
 }
+
+/* ---------- Tarjetas de características: resalta el fondo al pasar el mouse ---------- */
+.feature-card {
+  --glow: 41, 214, 221;
+  position: relative;
+  isolation: isolate;
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+.feature-card--pomodoro { --glow: 255, 138, 101; }
+.feature-card--materias { --glow: 224, 107, 157; }
+.feature-card--tareas { --glow: 111, 214, 143; }
+.feature-card--estadisticas { --glow: 111, 168, 255; }
+.feature-card--logros { --glow: 255, 207, 92; }
+.feature-card--metas { --glow: 41, 214, 221; }
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgba(var(--glow), 0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+/* Solo con mouse real (en celular no quedan resaltados pegados) */
+  html.sf-mouse .feature-card:hover {
+    border-color: rgba(var(--glow), 0.35);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 32px rgba(var(--glow), 0.1);
+  }
+  html.sf-mouse .feature-card:hover::before { opacity: 1; }
+

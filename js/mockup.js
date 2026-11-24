@@ -84,10 +84,39 @@ window.SFMockup = (() => {
       </div>`;
   }
 
+  /** Guarda la posición del puntero en --mx/--my para que el brillo lo siga. */
+  function seguirPuntero(el) {
+    let pendiente = null;
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      pendiente = e;
+      if (seguirPuntero.raf) return;
+      seguirPuntero.raf = requestAnimationFrame(() => {
+        seguirPuntero.raf = null;
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${pendiente.clientX - r.left}px`);
+        el.style.setProperty('--my', `${pendiente.clientY - r.top}px`);
+      });
+    });
+  }
+
+  // Marca si se usa un mouse real: los brillos solo aparecen con mouse
+  // (en pantallas táctiles no quedan resaltados "pegados" tras tocar).
+  const raiz = document.documentElement;
+  window.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') raiz.classList.add('sf-mouse'); }, { passive: true });
+  window.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') raiz.classList.remove('sf-mouse'); }, { passive: true });
+
   function mountAll(root = document) {
     root.querySelectorAll('[data-app-mockup]').forEach((el) => {
       el.insertAdjacentHTML('beforeend', html());
+      const mock = el.querySelector('.app-mock');
+      mock.setAttribute('draggable', 'false');
+      mock.addEventListener('dragstart', (e) => e.preventDefault());
+      mock.addEventListener('contextmenu', (e) => e.preventDefault());
+      seguirPuntero(mock);
     });
+    // Tarjetas de características de la landing
+    root.querySelectorAll('.feature-card').forEach(seguirPuntero);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => mountAll(), { once: true });

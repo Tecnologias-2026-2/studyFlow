@@ -174,7 +174,8 @@
   font-weight: 600;
 }
 
-/* ---------- Visual (mockup de la app): imagen de referencia, no interactiva ---------- */
+/* ---------- Visual (mockup de la app): imagen de referencia, no seleccionable;
+   solo responde al mouse con un brillo suave (mockup.css) ---------- */
 .auth__visual {
   position: relative;
   display: flex;
@@ -182,7 +183,8 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none;
+  -webkit-touch-callout: none;
+  cursor: default;
 }
 
 /* ---------- Cuenta creada con éxito ---------- */
