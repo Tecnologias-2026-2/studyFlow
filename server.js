@@ -6,7 +6,6 @@
 //     GET /api/salud                 estado del servidor
 //     GET /api/eventos               calendario académico (festivos, parciales, entregas)
 //     GET /api/eventos?mes=2026-11   solo los eventos de ese mes
-//     GET /api/testimonios           testimonios de la página de inicio
 //     GET /api/consejos              consejos de estudio
 //     GET /api/consejos/hoy          el consejo del día
 //
@@ -22,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = path.dirname(fileURLToPath(import.meta.url));
 const CARPETA_DATOS = path.join(RAIZ, 'data');
 const PUERTO = process.env.PORT || 3000;
-const COLECCIONES = ['eventos', 'testimonios', 'consejos'];
+const COLECCIONES = ['eventos', 'consejos'];
 const INICIO = Date.now();
 
 const app = express();

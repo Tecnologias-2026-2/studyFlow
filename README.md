@@ -145,7 +145,6 @@ como referencia y materias/tareas de ejemplo, definidas en `js/store.js`
 | --- | --- | --- |
 | `GET /api/salud` | Estado del servidor | Render (health check) |
 | `GET /api/eventos?mes=AAAA-MM` | Calendario académico: festivos, parciales, entregas | Calendario y Dashboard |
-| `GET /api/testimonios` | Testimonios | Página de inicio |
 | `GET /api/consejos` / `GET /api/consejos/hoy` | Consejos de estudio / el del día | Dashboard |
 
 Para verlo en el navegador: clic derecho → **Inspeccionar** → pestaña **Network
@@ -198,3 +197,16 @@ cambiar desde «Configurar cookies» (pie de página, páginas legales y Mi perf
 
 > Limitación: las cuentas y tareas se guardan en el navegador (localStorage).
 > No hay base de datos todavía, así que no se comparten entre dispositivos.
+
+## Supabase (solo cuentas)
+
+- `supabase/migrations/20261124050000_perfiles.sql`: tabla `perfiles` (nombre,
+  apellido, universidad, carrera, semestre) con RLS: cada usuario solo ve y
+  edita lo suyo. El perfil se crea solo al registrarse.
+- El correo y la contraseña los guarda **Supabase Auth** (contraseña cifrada);
+  no hay ninguna columna de contraseña en nuestras tablas.
+- `js/supabase-config.js`: URL y clave publishable del proyecto. Con la clave
+  vacía, las cuentas siguen en el navegador (modo local).
+- `js/cuentas.js`: registro, inicio de sesión, cerrar sesión, perfil, cambio y
+  recuperación de contraseña, contra Supabase o en modo local.
+- Materias, tareas y Pomodoro siguen en el navegador.

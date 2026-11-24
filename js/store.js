@@ -131,6 +131,34 @@ window.SF = (() => {
     return leida;
   }
 
+  /**
+   * Cuenta que viene de Supabase: se guarda en el navegador solo lo necesario
+   * para mostrar el perfil y separar los datos (sin contraseña: esa la
+   * guarda Supabase). Devuelve false si el navegador no la pudo guardar.
+   */
+  function syncAccount(perfil) {
+    const email = norm(perfil.email);
+    const previa = account(email) || {};
+    const acc = {
+      ...previa,
+      email,
+      name: perfil.nombre ?? previa.name ?? '',
+      lastName: perfil.apellido ?? previa.lastName ?? '',
+      university: perfil.universidad ?? previa.university ?? '',
+      career: perfil.carrera ?? previa.career ?? '',
+      semester: perfil.semestre ? String(perfil.semestre) : (previa.semester || ''),
+      avatar: previa.avatar || '',
+      provider: 'supabase',
+      supabaseId: perfil.id || previa.supabaseId || '',
+      createdAt: perfil.creado_en || previa.createdAt || new Date().toISOString(),
+      salt: null,
+      passHash: null
+    };
+    if (!saveAccount(acc)) return false;
+    if (!read(KEYS.data(email), null)) write(KEYS.data(email), emptyData());
+    return true;
+  }
+
   async function authenticate(email, password) {
     const acc = account(email);
     if (!acc || !acc.passHash) return null;
@@ -475,7 +503,7 @@ window.SF = (() => {
   return {
     COLORS, EMOJIS, MONTHS, MONTHS_SHORT, WEEKDAYS, PRIORITY,
     esc, uid, pad, toKey, fromKey, todayKey, addDays, onReady,
-    register, authenticate, checkPassword, setPassword, updateAccount, account, login, logout, currentUser, requireUser, fullName, initials,
+    register, syncAccount, authenticate, checkPassword, setPassword, updateAccount, account, login, logout, currentUser, requireUser, fullName, initials,
     data, subjects, subjectById, addSubject, updateSubject, removeSubject,
     tasks, taskById, addTask, updateTask, removeTask, toggleTask, addSubtask, toggleSubtask, removeSubtask,
     dueDateTime, isOverdue, taskFraction, formatDue, byDue, counts, subjectStats, daySummary, completedToday, reminders, reminderStyle,

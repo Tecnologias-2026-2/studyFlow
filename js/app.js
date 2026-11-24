@@ -27,6 +27,13 @@
 
     renderShell(user);
     document.body.classList.add('sf-autenticado');
+
+    // Con Supabase, la sesión del servidor también debe seguir abierta
+    window.SFCuentas.verificarSesion().then((valida) => {
+      if (valida) return;
+      window.SF.logout();
+      window.location.replace('iniciar-sesion.html');
+    });
     setupSidebar();
     setupSearch();
     setupNotifications();
@@ -82,8 +89,8 @@
     document.querySelector('[data-shell="sidebar"]').outerHTML = sidebar;
     document.querySelector('[data-shell="topbar"]').outerHTML = topbar;
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      window.SF.logout();
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await window.SFCuentas.cerrarSesion();
       window.location.href = 'iniciar-sesion.html';
     });
   }

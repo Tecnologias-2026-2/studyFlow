@@ -4,7 +4,6 @@
    Inspeccionar → Network (Red), filtrando por "api".
 
      GET /api/eventos?mes=AAAA-MM   calendario académico del mes
-     GET /api/testimonios           testimonios de la página de inicio
      GET /api/consejos/hoy          consejo de estudio del día
 
    Si la página se abre sin servidor (doble clic en el HTML), las
@@ -62,7 +61,6 @@ window.SFApi = (() => {
     TIPOS,
     eventosDelMes,
     eventosPorDia,
-    testimonios: () => get('testimonios'),
     consejoDelDia: () => get('consejos/hoy')
   };
 })();

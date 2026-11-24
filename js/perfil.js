@@ -1,8 +1,7 @@
 /* =========================================================
    StudyFlow — Mi perfil
-   Información personal editable, foto de perfil (guardada como
-   data URL local) y seguridad: cambiar contraseña o vincular una
-   si la cuenta se creó con Google/Microsoft.
+   Información personal editable (con Supabase se guarda en la tabla
+   perfiles), foto de perfil (en el navegador) y cambio de contraseña.
    ========================================================= */
 
 (() => {
@@ -79,7 +78,7 @@
     reader.readAsDataURL(file);
   }
 
-  function onInfoSubmit(event) {
+  async function onInfoSubmit(event) {
     event.preventDefault();
     const form = event.target;
     UI.clearErrors(form);
@@ -87,13 +86,18 @@
     const name = form.name.value.trim();
     if (!name) { UI.setFieldError(form.name, 'Escribe tu nombre.'); return; }
 
-    SF.updateAccount({
-      name,
-      lastName: form.lastName.value.trim(),
-      university: form.university.value.trim(),
-      career: form.career.value.trim(),
-      semester: form.semester.value.trim()
-    });
+    try {
+      await window.SFCuentas.actualizarPerfil({
+        name,
+        lastName: form.lastName.value.trim(),
+        university: form.university.value.trim(),
+        career: form.career.value.trim(),
+        semester: form.semester.value.trim()
+      });
+    } catch (error) {
+      UI.formError(form, window.SFCuentas.mensaje(error));
+      return;
+    }
 
     const success = form.querySelector('.form-success');
     success.textContent = 'Tus datos se guardaron correctamente.';
@@ -106,7 +110,7 @@
   function renderSecurity(user) {
     const body = $('securityBody');
 
-    if (!user.passHash) {
+    if (!user.passHash && user.provider !== 'supabase') {
       body.innerHTML = `
         <p class="security-note">${icon('alert')}Tu cuenta aún no tiene contraseña (se creó con un acceso que ya no está disponible). Crea una para poder iniciar sesión con tu correo.</p>
         <form class="security-form" id="setPasswordForm" novalidate>
@@ -158,12 +162,15 @@
       const form = event.target;
       UI.clearErrors(form);
 
-      const ok = await SF.checkPassword(form.current.value);
-      if (!ok) { UI.setFieldError(form.current, 'La contraseña actual no es correcta.'); return; }
       if (form.password.value.length < 8) { UI.setFieldError(form.password, 'La contraseña debe tener al menos 8 caracteres.'); return; }
       if (form.confirm.value !== form.password.value) { UI.setFieldError(form.confirm, 'Las contraseñas no coinciden.'); return; }
-
-      await SF.setPassword(user.email, form.password.value);
+      try {
+        await window.SFCuentas.cambiarPassword(form.current.value, form.password.value);
+      } catch (error) {
+        if (error.codigo === 'actual') UI.setFieldError(form.current, window.SFCuentas.mensaje(error));
+        else UI.formError(form, window.SFCuentas.mensaje(error));
+        return;
+      }
       UI.toast('Contraseña actualizada');
       form.reset();
     });

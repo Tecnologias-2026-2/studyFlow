@@ -10,6 +10,7 @@
   const { icon } = window.SFIcons;
   const UI = window.SFUI;
   const SF = window.SF;
+  const Cuentas = window.SFCuentas;
 
   const DASHBOARD = 'dashboard.html';
 
@@ -47,24 +48,22 @@
       if (!password) { UI.setFieldError(form.password, 'Escribe tu contraseña.'); valid = false; }
       if (!valid) return;
 
-      const account = await SF.authenticate(email, password);
-      if (!account) {
-        const existing = SF.account(email);
-        UI.formError(form, existing && !existing.passHash
-          ? 'Esta cuenta no tiene contraseña. Usa «¿Olvidaste tu contraseña?» para crear una.'
-          : 'Correo o contraseña incorrectos.');
-        return;
-      }
-
-      if (!SF.login(email)) {
-        UI.formError(form, 'Tu navegador no permitió guardar la sesión. Revisa que no esté bloqueado el almacenamiento del sitio.');
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      try {
+        await Cuentas.iniciarSesion(email, password);
+      } catch (error) {
+        button.disabled = false;
+        UI.formError(form, Cuentas.mensaje(error));
         return;
       }
       window.location.href = DASHBOARD;
     });
 
-    // Viene de crear la cuenta: el correo ya aparece escrito
-    const correo = new URLSearchParams(window.location.search).get('correo');
+    // Viene de crear la cuenta (o de confirmar el correo): el correo ya aparece escrito
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('confirmada') === '1') UI.toast('Correo confirmado. Ya puedes iniciar sesión.');
+    const correo = params.get('correo');
     if (correo && !form.email.value) {
       form.email.value = correo;
       form.password.focus();
@@ -94,12 +93,12 @@
       button.textContent = 'Creando cuenta…';
       let account;
       try {
-        account = await SF.register({ fullName, email, password });
+        account = await Cuentas.registrar({ fullName, email, password });
       } catch (error) {
         button.disabled = false;
         button.textContent = 'Crear cuenta gratis';
-        if (error.message === 'exists') UI.setFieldError(form.email, 'Este correo ya tiene una cuenta. Inicia sesión.');
-        else UI.formError(form, 'No se pudo guardar la cuenta en este navegador. Revisa que el almacenamiento del sitio no esté bloqueado e inténtalo de nuevo.');
+        if (error.codigo === 'exists') UI.setFieldError(form.email, Cuentas.mensaje(error));
+        else UI.formError(form, Cuentas.mensaje(error));
         return;
       }
 
@@ -111,6 +110,9 @@
       const done = document.getElementById('signupDone');
       done.querySelector('.auth-success__icon').innerHTML = icon('check');
       document.getElementById('signupDoneEmail').textContent = account.email;
+      if (account.confirmarCorreo) {
+        done.querySelector('.auth-success__text').innerHTML = `Te enviamos un correo a <strong>${SF.esc(account.email)}</strong>. Abre el enlace para confirmar tu cuenta y luego inicia sesión.`;
+      }
       document.getElementById('signupDoneLogin').href = `iniciar-sesion.html?correo=${encodeURIComponent(account.email)}`;
       done.hidden = false;
       UI.toast('Cuenta creada con éxito');
@@ -135,19 +137,45 @@
     };
     setHeader('mail', '¿Olvidaste tu contraseña?', 'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.');
 
-    recover.addEventListener('submit', (event) => {
+    const mostrarFormularioNuevo = (texto) => {
+      setHeader('lock', 'Crea una nueva contraseña', texto);
+      recover.hidden = true;
+      reset.hidden = false;
+      reset.password.focus();
+    };
+
+    // Supabase: se llegó con el enlace del correo → se pide la nueva contraseña
+    Cuentas.enlaceDeRecuperacion()
+      .then((desdeEnlace) => { if (desdeEnlace) mostrarFormularioNuevo('Escribe la contraseña que usarás de ahora en adelante.'); })
+      .catch((error) => UI.formError(recover, Cuentas.mensaje(error)));
+
+    recover.addEventListener('submit', async (event) => {
       event.preventDefault();
       UI.clearErrors(recover);
       const email = recover.email.value.trim();
 
       if (!UI.validEmail(email)) { UI.setFieldError(recover.email, 'Escribe un correo electrónico válido.'); return; }
-      if (!SF.account(email)) { UI.setFieldError(recover.email, 'No encontramos una cuenta con ese correo.'); return; }
 
+      if (Cuentas.MODO === 'supabase') {
+        const button = recover.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          await Cuentas.enviarRecuperacion(email);
+        } catch (error) {
+          button.disabled = false;
+          UI.formError(recover, Cuentas.mensaje(error));
+          return;
+        }
+        // Mismo mensaje exista o no la cuenta, para no revelar qué correos están registrados
+        setHeader('mail', 'Revisa tu correo', `Si ${email} tiene una cuenta, te llegará un enlace para crear una nueva contraseña.`);
+        recover.hidden = true;
+        return;
+      }
+
+      // Modo local (sin Supabase): no hay correo, se cambia aquí mismo
+      if (!SF.account(email)) { UI.setFieldError(recover.email, 'No encontramos una cuenta con ese correo.'); return; }
       targetEmail = email;
-      setHeader('lock', 'Crea una nueva contraseña', `Cuenta: ${email}`);
-      recover.hidden = true;
-      reset.hidden = false;
-      reset.password.focus();
+      mostrarFormularioNuevo(`Cuenta: ${email}`);
     });
 
     reset.addEventListener('submit', async (event) => {
@@ -159,7 +187,13 @@
       if (reset.confirm.value !== reset.password.value) { UI.setFieldError(reset.confirm, 'Las contraseñas no coinciden.'); valid = false; }
       if (!valid) return;
 
-      await SF.setPassword(targetEmail, reset.password.value);
+      try {
+        if (Cuentas.MODO === 'supabase') await Cuentas.restablecerPassword(reset.password.value);
+        else await SF.setPassword(targetEmail, reset.password.value);
+      } catch (error) {
+        UI.formError(reset, Cuentas.mensaje(error));
+        return;
+      }
       setHeader('check', '¡Contraseña actualizada!', 'Ya puedes iniciar sesión con tu nueva contraseña.');
       document.getElementById('recoverFooter').hidden = true;
       reset.hidden = true;
