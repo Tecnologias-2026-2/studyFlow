@@ -160,7 +160,7 @@
     $('tabPending').tabIndex = pending ? 0 : -1;
     $('tabDone').setAttribute('aria-selected', String(!pending));
     $('tabDone').tabIndex = pending ? -1 : 0;
-    $('taskCards').setAttribute('aria-labelledby', pending ? 'tabPending' : 'tabDone');
+    $('taskPanel').setAttribute('aria-labelledby', pending ? 'tabPending' : 'tabDone');
   }
 
   function renderFilterOptions() {
@@ -208,7 +208,7 @@
       action = '<button type="button" class="btn btn--primary btn--sm" data-create>+ Nueva tarea</button>';
     }
 
-    return `<div class="empty-state"><span class="empty-state__icon">${icon('clipboard')}</span><h3>${title}</h3><p>${text}</p>${action}</div>`;
+    return `<div class="empty-state"><span class="empty-state__icon">${icon('clipboard')}</span><h2>${title}</h2><p>${text}</p>${action}</div>`;
   }
 
   function cardHTML(task) {
@@ -235,7 +235,7 @@
         <div class="task-card__head">
           <input type="checkbox" class="task-check" data-fk="task-${task.id}" aria-label="Marcar «${esc(task.title)}» como ${task.done ? 'pendiente' : 'completada'}"${task.done ? ' checked' : ''}>
           <div class="task-card__body">
-            <h3 class="task-card__title">${esc(task.title)}</h3>
+            <h2 class="task-card__title">${esc(task.title)}</h2>
             <div class="task-card__meta">
               ${subject ? `<span class="chip" data-color="${subject.color}">${esc(subject.name)}</span>` : ''}
               <span class="badge badge--${task.priority}">${SF.PRIORITY[task.priority].label}</span>

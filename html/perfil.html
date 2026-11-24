@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/perfil.css">
+  <script src="../js/accesibilidad.js"></script>
+  <script src="../js/cookies.js" defer></script>
 </head>
 <body class="app" data-page="perfil">
 
@@ -36,7 +38,7 @@
             <div class="profile-card__avatar-wrap">
               <span class="profile-card__avatar" id="profileAvatar"></span>
               <button type="button" class="profile-card__camera" id="avatarBtn" aria-label="Cambiar foto de perfil"></button>
-              <input type="file" id="avatarInput" accept="image/*" class="visually-hidden">
+              <input type="file" id="avatarInput" accept="image/*" class="visually-hidden" aria-label="Elegir foto de perfil" tabindex="-1">
             </div>
             <h3 class="profile-card__name" id="profileName"></h3>
             <p class="profile-card__email" id="profileEmail"></p>
@@ -70,6 +72,11 @@
             <section class="card" aria-labelledby="securityTitle" id="securitySection">
               <h2 class="section-title" id="securityTitle"><span data-icon="lock"></span>Seguridad</h2>
               <div id="securityBody"></div>
+            </section>
+
+            <section class="card" aria-labelledby="cookiesTitle" data-cookies-config>
+              <h2 class="section-title" id="cookiesTitle">Privacidad y cookies</h2>
+              <p class="cookies-perfil__texto">Las cookies de StudyFlow guardan tu nombre, correo, carrera y último acceso durante 30 días, solo si las aceptas. Nunca guardan tu contraseña.</p>
             </section>
           </div>
         </div>

@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/calendar.css">
   <link rel="stylesheet" href="../css/dashboard.css">
+  <script src="../js/accesibilidad.js"></script>
+  <script src="../js/cookies.js" defer></script>
 </head>
 <body class="app" data-page="inicio">
 
@@ -38,6 +40,14 @@
         </section>
 
         <ul class="stats" id="dashStats" aria-label="Resumen del día"></ul>
+
+        <aside class="tip-card" id="tipCard" aria-labelledby="consejo-titulo" hidden>
+          <span class="tip-card__icon" aria-hidden="true">💡</span>
+          <div>
+            <h2 class="tip-card__title" id="consejo-titulo">Consejo del día</h2>
+            <p class="tip-card__text" id="tipText"></p>
+          </div>
+        </aside>
 
         <div class="dashboard-row dashboard-row--top">
           <section class="card card--outlined day-progress" aria-labelledby="progreso-titulo">
@@ -74,6 +84,7 @@
 
   <script src="../js/icons.js"></script>
   <script src="../js/store.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/calendar.js"></script>

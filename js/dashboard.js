@@ -144,3 +144,15 @@
     });
   }
 })();
+
+/* Consejo del día: lo entrega el backend (GET /api/consejos/hoy) */
+(() => {
+  const card = document.getElementById('tipCard');
+  if (!card || !window.SFApi) return;
+  window.SFApi.consejoDelDia()
+    .then((consejo) => {
+      document.getElementById('tipText').textContent = consejo.texto;
+      card.hidden = false;
+    })
+    .catch(() => { /* sin servidor no se muestra */ });
+})();

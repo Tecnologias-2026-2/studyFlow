@@ -98,7 +98,7 @@ button.calendar__day:hover {
 }
 
 .calendar__day.is-outside {
-  color: rgba(139, 150, 173, 0.5);
+  color: #8b96ad;
 }
 
 .calendar__day.is-selected {
@@ -151,3 +151,79 @@ button.calendar__day:hover {
 }
 
 
+
+/* ---------- Eventos del calendario académico (vienen de /api/eventos) ---------- */
+.has-event--festivo { --evento: #ff7a7a; }
+.has-event--examenes { --evento: #b89cff; }
+.has-event--entregas { --evento: #ffcf5c; }
+.has-event--academico { --evento: #6fa8ff; }
+
+.calendar__mark {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--evento, var(--color-primary));
+}
+
+.calendar__day.has-event {
+  box-shadow: inset 0 -2px 0 var(--evento, var(--color-primary));
+}
+
+.calendar__day.has-event.is-selected {
+  box-shadow: inset 0 0 0 1px rgba(41, 214, 221, 0.6), inset 0 -2px 0 var(--evento, var(--color-primary));
+}
+
+.calendar__mark--legend {
+  position: static;
+  display: inline-block;
+}
+
+/* Panel del día: eventos académicos */
+.day-events {
+  margin-bottom: 16px;
+}
+
+.day-events__title {
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.day-events__list {
+  display: grid;
+  gap: 8px;
+}
+
+.day-events__item {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--evento, var(--color-primary));
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.day-events__type {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--evento, var(--color-primary));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.day-events__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.day-events__desc {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}

@@ -3,8 +3,10 @@
 Plataforma de productividad académica para universitarios: Pomodoro, gestión
 de materias y tareas, estadísticas, logros y metas semanales.
 
-Este proyecto es un **prototipo de diseño y maquetación** basado en el diseño de
-Figma de StudyFlow. No incluye backend, base de datos ni autenticación real.
+Este proyecto empezó como un **prototipo de diseño y maquetación** basado en el
+diseño de Figma de StudyFlow. Ahora tiene un **backend en Node.js (Express)** que
+se publica en Render y entrega datos por API. Todavía no usa base de datos: las
+cuentas, materias y tareas siguen guardándose en el navegador.
 
 ## Tecnologías
 
@@ -133,3 +135,46 @@ como referencia y materias/tareas de ejemplo, definidas en `js/store.js`
 ## Prototipo de Figma
 
 `https://www.figma.com/design/s1VlpQj5Kp7ybpq2Xs0jR0/Studyflow`
+
+
+## Backend (Render)
+
+`server.js` sirve la página y una API JSON con los datos de la carpeta `data/`:
+
+| Ruta | Qué devuelve | Dónde se usa |
+| --- | --- | --- |
+| `GET /api/salud` | Estado del servidor | Render (health check) |
+| `GET /api/eventos?mes=AAAA-MM` | Calendario académico: festivos, parciales, entregas | Calendario y Dashboard |
+| `GET /api/testimonios` | Testimonios | Página de inicio |
+| `GET /api/consejos` / `GET /api/consejos/hoy` | Consejos de estudio / el del día | Dashboard |
+
+Para verlo en el navegador: clic derecho → **Inspeccionar** → pestaña **Network
+(Red)** → filtra por `api`. Cada petición también queda en **Render → Logs**
+(`GET /api/eventos?mes=2026-11 → 200 (2.5 ms)`).
+
+Probar en el computador:
+
+```bash
+npm install
+npm start        # http://localhost:3000
+```
+
+Publicar en Render: **New → Web Service** → este repositorio → Build `npm install`
+→ Start `npm start` (o usar `render.yaml`).
+
+## Accesibilidad
+
+- Revisado con las reglas de Chrome Lighthouse/axe-core (WCAG 2.2 AA y buenas
+  prácticas): contraste de colores, nombres accesibles, orden de títulos,
+  tamaño mínimo de objetivos táctiles, landmarks únicos.
+- Botón flotante de accesibilidad (`js/accesibilidad.js`): perfiles (visión baja,
+  epilepsia, TDAH, dislexia), tamaño de texto, alto contraste, modo oscuro,
+  resaltar enlaces y títulos, fuente legible, pausar animaciones, guía de lectura
+  y cursor grande.
+
+## Cookies
+
+`js/cookies.js` muestra un aviso la primera vez. Si se aceptan, guarda nombre,
+correo, carrera y último acceso; **todas las cookies caducan a los 30 días**
+(también la que recuerda la decisión). Nunca se guardan contraseñas. Se pueden
+cambiar desde «Configurar cookies» (pie de página, páginas legales y Mi perfil).

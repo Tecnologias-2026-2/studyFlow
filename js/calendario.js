@@ -24,6 +24,7 @@
       renderDay();
     });
     document.addEventListener('sf:change', renderDay);
+    document.addEventListener('sf:eventos', renderDay);
   });
 
   function renderDay() {
@@ -62,5 +63,26 @@
       <p class="day-panel__empty-text">No tienes tareas programadas para este día.</p>`;
 
     UI.applyColors(list);
+    renderAcademicos();
+  }
+
+  /** Eventos del calendario académico (vienen del backend: /api/eventos). */
+  function renderAcademicos() {
+    let box = document.getElementById('dayEvents');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'dayEvents';
+      box.className = 'day-events';
+      document.getElementById('dayList').before(box);
+    }
+    const mes = currentKey.slice(0, 7);
+    const lista = window.SFCalendar && window.SFApi
+      ? (window.SFApi.eventosPorDia(window.SFCalendar.academicos(mes))[currentKey] || [])
+      : [];
+    box.hidden = lista.length === 0;
+    box.innerHTML = lista.length ? `<h3 class="day-events__title">Calendario académico</h3><ul class="day-events__list">${lista.map((e) => {
+      const tipo = window.SFApi.TIPOS[e.tipo] || { label: 'Evento' };
+      return `<li class="day-events__item has-event--${esc(e.tipo)}"><span class="day-events__type">${esc(tipo.label)}</span><span class="day-events__name">${esc(e.titulo)}</span><span class="day-events__desc">${esc(e.descripcion || '')}</span></li>`;
+    }).join('')}</ul>` : '';
   }
 })();

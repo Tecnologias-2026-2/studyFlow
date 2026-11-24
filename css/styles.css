@@ -342,7 +342,8 @@ button {
   max-width: 32ch;
 }
 
-.footer__col h4 {
+.footer__col h4,
+.footer__col .footer__heading {
   font-size: 0.9rem;
   margin-bottom: 16px;
 }

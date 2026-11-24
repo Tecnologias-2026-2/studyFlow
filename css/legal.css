@@ -128,3 +128,7 @@
 .legal-footer a[aria-current="page"] {
   color: var(--color-primary);
 }
+
+.legal-footer .cookies-config {
+  margin-left: 6px;
+}

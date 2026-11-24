@@ -1,0 +1,17 @@
+{
+  "name": "studyflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StudyFlow: plataforma de productividad académica con backend Express",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

@@ -8,7 +8,7 @@
   --mock-bg: #0b1129;
   --mock-card: rgba(255, 255, 255, 0.035);
   --mock-line: rgba(255, 255, 255, 0.08);
-  --mock-muted: #7c87a3;
+  --mock-muted: #97a2bd;
   width: 100%;
   max-width: 490px;
   border-radius: 12px;
@@ -281,7 +281,7 @@
 }
 
 .app-mock__tasks li.is-done {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .app-mock__tasks li.is-done span {

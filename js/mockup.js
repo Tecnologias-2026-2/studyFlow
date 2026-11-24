@@ -67,9 +67,9 @@ window.SFMockup = (() => {
             <div class="app-mock__card">
               <div class="app-mock__head"><span>${ICONS.check}Tareas pendientes</span><small>4 de 7</small></div>
               <ul class="app-mock__tasks">
-                <li style="--t:239,68,68"><span>Resolver ejercicios de cálculo</span><em>Matemáticas</em></li>
-                <li style="--t:245,158,11"><span>Preparar exposición de Historia</span><em>Historia</em></li>
-                <li class="is-done" style="--t:34,197,94"><span>Leer capítulo de Biología</span><em>Biología</em>${ICONS.check}</li>
+                <li style="--t:252,165,165"><span>Resolver ejercicios de cálculo</span><em>Matemáticas</em></li>
+                <li style="--t:252,211,77"><span>Preparar exposición de Historia</span><em>Historia</em></li>
+                <li class="is-done" style="--t:134,239,172"><span>Leer capítulo de Biología</span><em>Biología</em>${ICONS.check}</li>
               </ul>
             </div>
             <div class="app-mock__card app-mock__head">

@@ -57,7 +57,7 @@
       <header class="topbar">
         <button type="button" class="topbar__menu" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="sidebar">${icon('menu')}</button>
         <div class="topbar__search-wrap">
-          <form class="topbar__search" role="search" action="tareas.html" method="get">
+          <form class="topbar__search" role="search" aria-label="Buscar en StudyFlow" action="tareas.html" method="get">
             <label class="visually-hidden" for="globalSearch">Buscar tareas y materias</label>
             ${icon('search')}
             <input type="search" id="globalSearch" name="q" placeholder="Buscar..." autocomplete="off" aria-controls="searchResults">
@@ -103,6 +103,8 @@
     const avatar = document.getElementById('avatarLink');
     avatar.innerHTML = user.avatar ? `<img src="${esc(user.avatar)}" alt="">` : esc(SF.initials(user));
     avatar.title = SF.fullName(user);
+    // El nombre accesible incluye las iniciales visibles (regla label-content-name-mismatch)
+    avatar.setAttribute('aria-label', user.avatar ? `Mi perfil: ${SF.fullName(user)}` : `${SF.initials(user)} · Mi perfil de ${SF.fullName(user)}`);
 
     renderNotifications();
   }

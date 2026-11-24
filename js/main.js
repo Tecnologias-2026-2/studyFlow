@@ -93,6 +93,18 @@ function setupActionButtons() {
 function setupTestimonials() {
   const card = document.getElementById('testimonialCard');
   if (!card) return;
+  // Los testimonios vienen del backend (GET /api/testimonios); si no responde, quedan los del HTML
+  if (window.SFApi && !card.dataset.cargado) {
+    card.dataset.cargado = '1';
+    window.SFApi.testimonios()
+      .then((lista) => {
+        if (!Array.isArray(lista) || !lista.length) return;
+        pintarTestimonios(card, lista);
+        setupTestimonials();
+      })
+      .catch(() => setupTestimonials());
+    return;
+  }
   const slides = Array.from(card.querySelectorAll('[data-slide]'));
   const dots = Array.from(card.querySelectorAll('[data-goto]'));
   if (slides.length < 2) return;
@@ -121,4 +133,19 @@ function setupTestimonials() {
 
   show(0);
   start();
+}
+
+function pintarTestimonios(card, lista) {
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const tonos = ['teal', 'amber', 'red'];
+  card.querySelector('.testimonial__slides').innerHTML = lista.map((t, i) => `
+    <figure class="testimonial__slide" data-slide${i ? ' hidden' : ''}>
+      <blockquote><p>“${esc(t.texto)}”</p></blockquote>
+      <figcaption class="testimonial__author">
+        <span class="testimonial__avatar${t.color && t.color !== 'teal' ? ` testimonial__avatar--${esc(t.color)}` : ''}" aria-hidden="true">${esc(t.iniciales)}</span>
+        <span><span class="testimonial__name">${esc(t.nombre)}</span><span class="testimonial__role">${esc(t.carrera)}</span></span>
+      </figcaption>
+    </figure>`).join('');
+  card.querySelector('.testimonial__dots').innerHTML = lista.map((t, i) => `
+    <button type="button" class="dot dot--${tonos[i % tonos.length]}" data-goto="${i}" aria-label="Testimonio ${i + 1} de ${lista.length}"${i ? '' : ' aria-current="true"'}></button>`).join('');
 }

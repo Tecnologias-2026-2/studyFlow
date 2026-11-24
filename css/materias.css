@@ -112,7 +112,7 @@
 }
 
 .subject-card__percent {
-  color: rgb(var(--c-rgb));
+  color: rgb(var(--c-text-rgb, var(--c-rgb)));
   font-weight: 700;
 }
 
@@ -129,7 +129,7 @@
   border-radius: 10px;
   border: 1px solid rgba(var(--c-rgb), 0.25);
   background: rgba(var(--c-rgb), 0.1);
-  color: rgb(var(--c-rgb));
+  color: rgb(var(--c-text-rgb, var(--c-rgb)));
   font-size: 0.75rem;
   font-weight: 700;
   transition: background 0.2s ease;
