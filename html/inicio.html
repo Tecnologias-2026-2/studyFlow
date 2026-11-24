@@ -35,7 +35,6 @@
         <ul class="navbar__links">
           <li><a href="#inicio">Inicio</a></li>
           <li><a href="#funciones">Características</a></li>
-          <li><a href="#testimonios">Testimonios</a></li>
         </ul>
       </nav>
 
@@ -53,7 +52,6 @@
       <ul class="mobile-menu__links">
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#funciones">Características</a></li>
-        <li><a href="#testimonios">Testimonios</a></li>
       </ul>
       <div class="mobile-menu__actions">
         <a href="iniciar-sesion.html" class="btn btn--ghost btn--block">Iniciar Sesión</a>
@@ -84,17 +82,12 @@
             <a href="iniciar-sesion.html" class="btn btn--outline btn--large">Iniciar Sesión</a>
           </div>
 
-          <div class="hero__social-proof">
-            <div class="hero__avatars" aria-hidden="true">
-              <span class="avatar-dot avatar-dot--1">MS</span>
-              <span class="avatar-dot avatar-dot--2">DA</span>
-              <span class="avatar-dot avatar-dot--3">CR</span>
-              <span class="avatar-dot avatar-dot--4">AM</span>
-            </div>
-            <div class="hero__rating">
-              <span class="stars" aria-hidden="true">★★★★★</span>
-              <span class="hero__rating-text">12,000+ estudiantes activos</span>
-            </div>
+          <!-- Número real de cuentas registradas (GET /api/estadisticas); oculto si no carga -->
+          <p class="hero__social-proof" id="estudiantesRegistrados" hidden>
+            <span class="hero__count-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.9.7 3 2.3 3 5.2"/></svg></span>
+            <span class="hero__count-text"><strong id="estudiantesNumero">0</strong> <span id="estudiantesEtiqueta">estudiantes registrados</span></span>
+          </p>
+        </div>
           </div>
         </div>
 
@@ -164,49 +157,6 @@
       </div>
     </section>
 
-    <section class="testimonial" id="testimonios" aria-labelledby="testimonialsTitle">
-      <div class="container">
-        <h2 class="visually-hidden" id="testimonialsTitle">Testimonios</h2>
-        <div class="testimonial__card" id="testimonialCard" aria-roledescription="carrusel">
-          <span class="stars stars--accent" aria-label="5 de 5 estrellas">★★★★★</span>
-          <div class="testimonial__slides" aria-live="polite">
-            <figure class="testimonial__slide" data-slide>
-              <blockquote>
-                <p>“Antes de StudyFlow llegaba al examen con la mitad del temario. Ahora organizo todo desde el primer día del semestre y mi GPA subió casi un punto entero en solo dos cuatrimestres.”</p>
-              </blockquote>
-              <figcaption class="testimonial__author">
-                <span class="testimonial__avatar" aria-hidden="true">AM</span>
-                <span><span class="testimonial__name">Andrea Martínez</span><span class="testimonial__role">Ingeniería de Sistemas · UNAM</span></span>
-              </figcaption>
-            </figure>
-            <figure class="testimonial__slide" data-slide hidden>
-              <blockquote>
-                <p>“El Pomodoro con el resumen del día me ayudó a dejar de procrastinar. Ver mi racha crecer cada día es lo que más me motiva a sentarme a estudiar.”</p>
-              </blockquote>
-              <figcaption class="testimonial__author">
-                <span class="testimonial__avatar testimonial__avatar--amber" aria-hidden="true">JC</span>
-                <span><span class="testimonial__name">Juan Camilo Pérez</span><span class="testimonial__role">Medicina · Universidad Nacional</span></span>
-              </figcaption>
-            </figure>
-            <figure class="testimonial__slide" data-slide hidden>
-              <blockquote>
-                <p>“Tener mis materias con colores y todas las entregas en un calendario me cambió el semestre. Ya no se me pasa ninguna fecha límite.”</p>
-              </blockquote>
-              <figcaption class="testimonial__author">
-                <span class="testimonial__avatar testimonial__avatar--red" aria-hidden="true">VR</span>
-                <span><span class="testimonial__name">Valentina Ruiz</span><span class="testimonial__role">Derecho · Universidad de los Andes</span></span>
-              </figcaption>
-            </figure>
-          </div>
-          <div class="testimonial__dots" role="group" aria-label="Elegir testimonio">
-            <button type="button" class="dot dot--teal" data-goto="0" aria-label="Testimonio 1" aria-current="true"></button>
-            <button type="button" class="dot dot--amber" data-goto="1" aria-label="Testimonio 2"></button>
-            <button type="button" class="dot dot--red" data-goto="2" aria-label="Testimonio 3"></button>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <footer class="site-footer">
@@ -230,7 +180,6 @@
         <ul>
           <li><a href="#inicio">Inicio</a></li>
           <li><a href="#funciones">Características</a></li>
-          <li><a href="#testimonios">Testimonios</a></li>
           <li><a href="crear-cuenta.html">Comenzar Gratis</a></li>
         </ul>
       </nav>
@@ -260,6 +209,7 @@
   <script src="../js/icons.js"></script>
   <script src="../js/store.js"></script>
   <script src="../js/mockup.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/main.js"></script>
 </body>
 </html>
