@@ -108,10 +108,11 @@
       else if (selectable && key === selected) classes.push('is-selected');
 
       const total = (events[key] || []).length;
+      const totalSubs = (events[key] || []).reduce((n, t) => n + (t.subtasks || []).length, 0);
       const delDia = academicosDia[key] || [];
       if (delDia.length) classes.push('has-event', `has-event--${delDia[0].tipo}`);
       const textoEventos = delDia.map((e) => `${window.SFApi.TIPOS[e.tipo] ? window.SFApi.TIPOS[e.tipo].label : 'Evento'}: ${e.titulo}`).join(', ');
-      const label = `${date.getDate()} de ${SF.MONTHS[month]} de ${year}${total ? `, ${total} ${total === 1 ? 'tarea' : 'tareas'}` : ''}${textoEventos ? `, ${textoEventos}` : ''}`;
+      const label = `${date.getDate()} de ${SF.MONTHS[month]} de ${year}${total ? `, ${total} ${total === 1 ? 'tarea' : 'tareas'}` : ''}${totalSubs ? ` con ${totalSubs} ${totalSubs === 1 ? 'subtarea' : 'subtareas'}` : ''}${textoEventos ? `, ${textoEventos}` : ''}`;
 
       const dots = pending.length
         ? `<span class="calendar__dots" aria-hidden="true">${uniqueColors(pending).map((c) => `<span class="dot-subject"${c ? ` data-color="${c}"` : ''}></span>`).join('')}</span>`

@@ -23,8 +23,8 @@ StudyFlow/
 │
 ├── html/
 │   ├── inicio.html              Landing page (hero, características, testimonio)
-│   ├── iniciar-sesion.html      Iniciar sesión (con Google / Microsoft simulados)
-│   ├── crear-cuenta.html        Crear cuenta (con Google / Microsoft simulados)
+│   ├── iniciar-sesion.html      Iniciar sesión con correo y contraseña
+│   ├── crear-cuenta.html        Crear cuenta (confirma «Cuenta creada con éxito»)
 │   ├── recuperar-contrasena.html  Olvidé mi contraseña
 │   ├── terminos.html            Términos y condiciones
 │   ├── privacidad.html          Política de privacidad
@@ -57,7 +57,7 @@ StudyFlow/
 │   ├── ui.js                    Utilidades: avisos, diálogos, validación de formularios
 │   ├── main.js                  Landing: menú móvil, scroll suave, carrusel de testimonios
 │   ├── mockup.js                Vista previa de la app (landing y acceso)
-│   ├── auth.js                  Iniciar sesión, crear cuenta, recuperar contraseña, Google/Microsoft
+│   ├── auth.js                  Crear cuenta, iniciar sesión y recuperar contraseña
 │   ├── app.js                   App: sidebar, buscador, notificaciones, cerrar sesión
 │   ├── dashboard.js             Panel principal
 │   ├── tareas.js                Mis Tareas
@@ -178,3 +178,23 @@ Publicar en Render: **New → Web Service** → este repositorio → Build `npm 
 correo, carrera y último acceso; **todas las cookies caducan a los 30 días**
 (también la que recuerda la decisión). Nunca se guardan contraseñas. Se pueden
 cambiar desde «Configurar cookies» (pie de página, páginas legales y Mi perfil).
+
+## Flujo de acceso
+
+1. **Crear cuenta**: se valida el formulario, se guarda la cuenta (la contraseña
+   se guarda cifrada con SHA-256 y sal) y se vuelve a leer para comprobar que
+   quedó guardada. Solo entonces aparece **«Cuenta creada con éxito»**.
+2. **Iniciar sesión**: el correo llega escrito; con la contraseña correcta se
+   entra al panel.
+3. Las páginas de la app (Materias, Inicio, Tareas, Calendario, Pomodoro y
+   Perfil) no se muestran sin sesión: redirigen a «Iniciar sesión».
+
+## Tareas, subtareas y calendario
+
+- Las tareas con subtareas tienen una **flecha** que las despliega o contrae.
+- El **Calendario** muestra en el panel de cada día las tareas y, con su flecha,
+  sus subtareas; marcarlas ahí se guarda en el mismo lugar que en Tareas.
+- La **Racha** (barra superior y tarjeta del panel) lleva a **Tareas**.
+
+> Limitación: las cuentas y tareas se guardan en el navegador (localStorage).
+> No hay base de datos todavía, así que no se comparten entre dispositivos.

@@ -108,7 +108,7 @@
 
     if (!user.passHash) {
       body.innerHTML = `
-        <p class="security-note">${icon('alert')}Tu cuenta usa acceso con ${user.provider === 'microsoft' ? 'Microsoft' : 'Google'}. Puedes crear una contraseña para entrar también con tu correo.</p>
+        <p class="security-note">${icon('alert')}Tu cuenta aún no tiene contraseña (se creó con un acceso que ya no está disponible). Crea una para poder iniciar sesión con tu correo.</p>
         <form class="security-form" id="setPasswordForm" novalidate>
           <div class="field-row">
             <div class="field"><label for="newPass1">Nueva contraseña</label>

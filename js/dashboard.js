@@ -56,12 +56,16 @@
       ['pending', 'target', counts.pending, 'Tareas pendientes'],
       ['streak', 'flame', `${SF.streak()}d`, 'Racha']
     ];
-    document.getElementById('dashStats').innerHTML = items.map(([tone, ico, value, label]) => `
-      <li class="stat-card stat-card--${tone}">
+    document.getElementById('dashStats').innerHTML = items.map(([tone, ico, value, label]) => {
+      const content = `
         <span class="stat-card__icon">${icon(ico)}</span>
         <p class="stat-card__value">${value}</p>
-        <p class="stat-card__label">${label}</p>
-      </li>`).join('');
+        <p class="stat-card__label">${label}</p>`;
+      // La racha lleva a Tareas (no al Pomodoro)
+      return tone === 'streak'
+        ? `<li class="stat-card stat-card--${tone} stat-card--link"><a class="stat-card__link" href="tareas.html">${content}<span class="visually-hidden">: ver mis tareas</span></a></li>`
+        : `<li class="stat-card stat-card--${tone}">${content}</li>`;
+    }).join('');
   }
 
   function renderProgress() {
@@ -115,11 +119,9 @@
     const pending = SF.tasks().filter((t) => !t.done).sort(SF.byDue).slice(0, 4);
 
     if (!pending.length) {
-      list.innerHTML = `<li class="task-item">
-        <input type="checkbox" class="task-item__check" disabled aria-label="Aún no hay tareas">
-        <span class="task-item__priority task-item__priority--high" aria-hidden="true"></span>
-        <span class="task-item__info"><a href="tareas.html?nueva=1" class="task-item__name">Crear Tarea +</a></span>
-        <span class="badge badge--high">Prioridad</span></li>`;
+      list.innerHTML = `<li class="task-item task-item--empty">
+        <span class="task-item__info"><span class="task-item__subject">No tienes tareas pendientes.</span>
+        <a href="tareas.html?nueva=1" class="task-item__name">Crear tarea +</a></span></li>`;
       return;
     }
 

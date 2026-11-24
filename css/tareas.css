@@ -107,6 +107,44 @@
   gap: 12px;
 }
 
+/* Flecha para desplegar las subtareas (solo en tareas que tienen subtareas) */
+.task-card__toggle,
+.task-card__toggle-space {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px 0 -8px;
+}
+
+.task-card__toggle {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.task-card__toggle:hover {
+  background: rgba(41, 214, 221, 0.12);
+}
+
+.task-card__toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.task-card__toggle[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-card__toggle svg { transition: none; }
+}
+
 .task-check {
   -webkit-appearance: none;
   appearance: none;
@@ -239,6 +277,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Jerarquía: las subtareas cuelgan de la tarea principal */
+  margin-left: 20px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(41, 214, 221, 0.35);
 }
 
 .subtask {
@@ -266,6 +308,11 @@
   display: flex;
   gap: 8px;
   margin-top: 10px;
+  margin-left: 20px;
+}
+
+.subtask-form input {
+  min-width: 0;
 }
 
 .subtask-form input {

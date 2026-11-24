@@ -89,12 +89,19 @@ window.SF = (() => {
   function saveAccount(acc) {
     const all = accounts();
     all[acc.email] = acc;
-    write(KEYS.accounts, all);
+    return write(KEYS.accounts, all);
   }
 
-  async function register({ fullName, email, password, provider = 'email' }) {
+  /**
+   * Crea la cuenta y comprueba que quedó guardada. NO inicia sesión:
+   * después del registro la persona entra por "Iniciar sesión".
+   * Lanza Error('exists') si el correo ya existe y Error('storage') si el
+   * navegador no permitió guardarla.
+   */
+  async function register({ fullName, email, password }) {
     email = norm(email);
     if (account(email)) throw new Error('exists');
+    if (!password || password.length < 8) throw new Error('password');
 
     const salt = uid();
     const [name, ...rest] = String(fullName || '').trim().split(/\s+/);
@@ -106,16 +113,22 @@ window.SF = (() => {
       career: '',
       semester: '',
       avatar: '',
-      provider,
+      provider: 'email',
       createdAt: new Date().toISOString(),
       salt,
-      passHash: password ? await hashPassword(password, salt) : null
+      passHash: await hashPassword(password, salt)
     };
 
-    saveAccount(acc);
-    write(KEYS.data(email), emptyData());
-    login(email);
-    return acc;
+    const guardada = saveAccount(acc) && write(KEYS.data(email), emptyData());
+    // Se vuelve a leer para confirmar que de verdad quedó guardada
+    const leida = account(email);
+    if (!guardada || !leida || leida.passHash !== acc.passHash) {
+      const all = accounts();
+      delete all[email];
+      write(KEYS.accounts, all);
+      throw new Error('storage');
+    }
+    return leida;
   }
 
   async function authenticate(email, password) {
@@ -445,74 +458,8 @@ window.SF = (() => {
     return h ? `${h}h ${pad(m)}m` : `${m}m`;
   }
 
-  /* ---------- Datos de demostración ---------- */
-  function demoData() {
-    const today = todayKey();
-    const mk = (name, teacher, emoji, color, offset) => ({ id: uid(), name, teacher, emoji, color, createdAt: Date.now() + offset });
-    const calc = mk('Cálculo Diferencial', 'Dr. Ramírez Torres', '📐', 'red', 0);
-    const fis = mk('Física General II', 'Dra. López Vega', '⚛️', 'blue', 1);
-    const his = mk('Historia Universal', 'Mtro. Gutiérrez', '📜', 'amber', 2);
-    const lit = mk('Literatura Contemporánea', 'Mtra. Sánchez', '📚', 'purple', 3);
-    const qui = mk('Química Orgánica', 'Dr. Mendoza', '🧪', 'green', 4);
-    const pro = mk('Programación Avanzada', 'Ing. Flores', '💻', 'sky', 5);
-
-    const subs = (list, doneCount) => list.map((text, i) => ({ id: uid(), text, done: i < doneCount }));
-    const task = (title, subject, priority, offset, time, tags, subtasks, extra = {}) => ({
-      id: uid(), title, subjectId: subject.id, priority,
-      dueDate: offset === null ? '' : addDays(today, offset), dueTime: time, tags, notes: '',
-      subtasks, done: false, completedAt: null, createdAt: Date.now() + Math.random() * 1000, ...extra
-    });
-    const doneNow = { done: true, completedAt: new Date().toISOString() };
-
-    const sessions = [{ date: today, minutes: 52, at: Date.now() }, { date: today, minutes: 53, at: Date.now() }];
-    for (let i = 1; i <= 6; i += 1) sessions.push({ date: addDays(today, -i), minutes: 25, at: Date.now() });
-
-    return {
-      subjects: [calc, fis, his, lit, qui, pro],
-      tasks: [
-        task('Tarea de Cálculo Diferencial', calc, 'high', 0, '23:59', ['Parcial', 'Cálculo'], subs(['Ejercicios del Capítulo 4', 'Límites laterales', 'Derivadas básicas', 'Regla de la cadena', 'Repaso final'], 3), { notes: 'Ejercicios del capítulo 4, problemas 1-20' }),
-        task('Leer capítulos 5-7 de Historia', his, 'medium', 1, '09:00', ['Lectura'], subs(['Capítulo 5', 'Capítulo 6', 'Capítulo 7'], 1)),
-        task('Ejercicios de Química Orgánica', qui, 'medium', 3, '20:00', ['Lab'], subs(['Nomenclatura', 'Isomería', 'Reacciones', 'Guía de laboratorio'], 0)),
-        task('Ensayo de Literatura Contemporánea', lit, 'low', 6, '', ['Ensayo', 'Entrega'], []),
-        task('Preparar exposición de Historia', his, 'high', 10, '', ['Exposición'], subs(['Tema', 'Fuentes', 'Guion', 'Diapositivas', 'Ensayo general', 'Presentación'], 1)),
-        task('Resolver guía de Física', fis, 'medium', -1, '18:00', ['Guía'], [], doneNow),
-        task('Quiz de Programación', pro, 'low', 0, '10:00', ['Quiz'], [], doneNow),
-        task('Informe de laboratorio', qui, 'high', -2, '', ['Lab'], [], doneNow)
-      ],
-      pomodoro: { settings: defaultSettings(), sessions, timer: null }
-    };
-  }
-
-  async function startDemo() {
-    const email = 'sofia.martinez@unimilitar.edu.co';
-    const salt = 'demo';
-    saveAccount({
-      email,
-      name: 'Sofía',
-      lastName: 'Martínez Rojas',
-      university: 'Universidad Militar Nueva Granada',
-      career: 'Ingeniería en Sistemas Computacionales',
-      semester: '5',
-      avatar: '',
-      provider: 'demo',
-      createdAt: '2026-08-01T12:00:00.000Z',
-      salt,
-      passHash: await hashPassword('demo1234', salt)
-    });
-    write(KEYS.data(email), demoData());
-    login(email);
-  }
-
   /* ---------- Arranque de página ---------- */
-  const ready = (async () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('demo') === '1') {
-      if (!currentUser()) await startDemo();
-      params.delete('demo');
-      const query = params.toString();
-      window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : '') + window.location.hash);
-    }
-  })();
+  const ready = Promise.resolve();
 
   const domReady = new Promise((resolve) => {
     if (document.readyState !== 'loading') resolve();
@@ -533,6 +480,6 @@ window.SF = (() => {
     tasks, taskById, addTask, updateTask, removeTask, toggleTask, addSubtask, toggleSubtask, removeSubtask,
     dueDateTime, isOverdue, taskFraction, formatDue, byDue, counts, subjectStats, daySummary, completedToday, reminders, reminderStyle,
     settings, saveSettings, recordSession, sessionsToday, minutesToday, streak, getTimer, saveTimer,
-    isNewUser, formatHours, formatMinutes, startDemo
+    isNewUser, formatHours, formatMinutes
   };
 })();

@@ -167,7 +167,7 @@
     '.a11y__reset svg{width:20px;height:20px}',
     '.a11y button:focus-visible{outline:3px solid #f2ce5e;outline-offset:2px;box-shadow:0 0 0 6px ' + AZUL + '}',
     '.a11y__nota{margin:4px 0 0;font-size:13px;line-height:18px;color:#45556c;text-align:center}',
-    '@media (max-width:560px){.a11y__boton{right:12px;bottom:12px;width:50px;height:50px}.a11y__panel{width:100vw}}'
+    '@media (max-width:560px){.a11y__boton{right:12px;bottom:12px;width:50px;height:50px}.a11y__panel{width:100vw}body{padding-bottom:72px}}'
   ].join('');
 
   var estilo = document.createElement('style');

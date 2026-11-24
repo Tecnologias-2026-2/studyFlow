@@ -10,20 +10,23 @@
   const { icon } = window.SFIcons;
   const { esc } = window.SF;
 
+  // Orden del menú: Materias primero
   const NAV = [
+    ['materias', 'book', 'Materias', 'materias.html'],
     ['inicio', 'home', 'Inicio', 'dashboard.html'],
     ['tareas', 'tasks', 'Tareas', 'tareas.html'],
     ['calendario', 'calendar', 'Calendario', 'calendario.html'],
     ['pomodoro', 'timer', 'Pomodoro', 'pomodoro.html'],
-    ['materias', 'book', 'Materias', 'materias.html'],
     ['perfil', 'user', 'Perfil', 'perfil.html']
   ];
 
   window.SF.onReady(() => {
+    // Sin sesión no se muestra nada de la app: se va a "Iniciar sesión"
     const user = window.SF.requireUser();
     if (!user) return;
 
     renderShell(user);
+    document.body.classList.add('sf-autenticado');
     setupSidebar();
     setupSearch();
     setupNotifications();
@@ -65,7 +68,7 @@
           <div class="dropdown dropdown--search" id="searchResults" hidden></div>
         </div>
         <div class="topbar__actions">
-          <a class="streak" href="pomodoro.html" id="streakPill" title="Tu racha de estudio">${icon('flame')}<span></span></a>
+          <a class="streak" href="tareas.html" id="streakPill" title="Tu racha de estudio: ver mis tareas">${icon('flame')}<span></span></a>
           <div class="dropdown-wrap">
             <button type="button" class="icon-button" id="bellBtn" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
               ${icon('bell')}<span class="icon-button__dot" id="bellDot" hidden></span>
@@ -92,7 +95,9 @@
     if (!user) return;
 
     const streak = SF.streak();
-    document.querySelector('#streakPill span').textContent = `${streak} ${streak === 1 ? 'día' : 'días'}`;
+    const streakText = `${streak} ${streak === 1 ? 'día' : 'días'}`;
+    document.querySelector('#streakPill span').textContent = streakText;
+    document.getElementById('streakPill').setAttribute('aria-label', `Racha de estudio: ${streakText}. Ver mis tareas`);
 
     const badge = document.getElementById('taskBadge');
     const pending = SF.counts().pending;

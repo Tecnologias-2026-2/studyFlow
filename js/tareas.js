@@ -231,8 +231,11 @@
       </li>`).join('');
 
     return `
-      <li class="task-card${task.done ? ' is-done' : ''}${overdue ? ' is-overdue' : ''}" data-id="${task.id}">
+      <li class="task-card${task.done ? ' is-done' : ''}${overdue ? ' is-overdue' : ''}${subs.length ? ' has-subs' : ''}" data-id="${task.id}">
         <div class="task-card__head">
+          ${subs.length
+            ? `<button type="button" class="task-card__toggle" data-toggle-subs data-fk="toggle-${task.id}" aria-expanded="${isOpen}" aria-controls="subs-${task.id}" aria-label="${isOpen ? 'Ocultar' : 'Mostrar'} las ${subs.length} subtareas de «${esc(task.title)}»">${icon('right')}</button>`
+            : '<span class="task-card__toggle-space" aria-hidden="true"></span>'}
           <input type="checkbox" class="task-check" data-fk="task-${task.id}" aria-label="Marcar «${esc(task.title)}» como ${task.done ? 'pendiente' : 'completada'}"${task.done ? ' checked' : ''}>
           <div class="task-card__body">
             <h2 class="task-card__title">${esc(task.title)}</h2>
@@ -255,7 +258,7 @@
         <progress class="bar" max="100" value="${percent}" aria-label="Progreso de «${esc(task.title)}»: ${percent}%"></progress>
         ${hint ? `<p class="task-card__hint">${esc(hint)}</p>` : ''}
         <div class="task-card__subs" id="subs-${task.id}"${isOpen ? '' : ' hidden'}>
-          ${subs.length ? `<ul class="subtask-list">${subItems}</ul>` : ''}
+          ${subs.length ? `<ul class="subtask-list" aria-label="Subtareas de «${esc(task.title)}»">${subItems}</ul>` : ''}
           <form class="subtask-form">
             <input type="text" placeholder="Agregar subtarea" aria-label="Nueva subtarea para «${esc(task.title)}»" maxlength="100" data-fk="subadd-${task.id}">
             <button type="submit" class="btn btn--outline btn--sm">Agregar</button>
@@ -316,13 +319,22 @@
     const id = card.dataset.id;
 
     if (event.target.closest('[data-toggle-subs]')) {
-      const button = card.querySelector('[data-toggle-subs]');
+      const clicked = event.target.closest('[data-toggle-subs]');
       const panel = card.querySelector('.task-card__subs');
       const open = panel.hidden;
       panel.hidden = !open;
-      button.setAttribute('aria-expanded', String(open));
+      const task = SF.taskById(id);
+      const total = (task.subtasks || []).length;
+      // La flecha y el texto de progreso abren/cierran el mismo panel
+      card.querySelectorAll('[data-toggle-subs]').forEach((button) => {
+        button.setAttribute('aria-expanded', String(open));
+        if (button.classList.contains('task-card__toggle')) {
+          button.setAttribute('aria-label', `${open ? 'Ocultar' : 'Mostrar'} las ${total} subtareas de «${task.title}»`);
+        }
+      });
       if (open) expanded.add(id); else expanded.delete(id);
-      if (open) panel.querySelector('.subtask-form input').focus();
+      // Sin subtareas, abrir el panel es para agregar una: el foco va al campo
+      if (open && (!total || !clicked.classList.contains('task-card__toggle'))) panel.querySelector('.subtask-form input').focus();
     } else if (event.target.closest('[data-edit]')) {
       openModal(id);
     } else if (event.target.closest('[data-delete]')) {

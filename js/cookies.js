@@ -107,10 +107,16 @@ window.SFCookies = (() => {
   // ---------- El aviso ----------
   let aviso, btnAceptar, btnBorrar, error, estado, origenFoco;
 
-  function construir() {
+  function ponerEstilos() {
+    if (document.getElementById('sf-cookies-css')) return;
     const estilo = document.createElement('style');
+    estilo.id = 'sf-cookies-css';
     estilo.textContent = CSS;
     document.head.appendChild(estilo);
+  }
+
+  function construir() {
+    ponerEstilos();
 
     aviso = document.createElement('div');
     aviso.className = 'cookies';
@@ -180,6 +186,7 @@ window.SFCookies = (() => {
 
   // Botón "Configurar cookies": pie de la página de inicio, páginas legales y Mi perfil
   function ponerBotones() {
+    ponerEstilos();
     document.querySelectorAll('.site-footer, .legal-footer, [data-cookies-config]').forEach((lugar) => {
       if (lugar.querySelector('.cookies-config')) return;
       const b = document.createElement('button');

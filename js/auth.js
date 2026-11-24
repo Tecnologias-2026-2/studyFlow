@@ -1,7 +1,7 @@
 /* =========================================================
-   StudyFlow — Autenticación (simulada, sin backend)
-   Iniciar sesión, crear cuenta, recuperar contraseña y acceso
-   simulado con Google / Microsoft.
+   StudyFlow — Autenticación (cuentas guardadas en el navegador)
+   Crear cuenta → mensaje "Cuenta creada con éxito" → Iniciar sesión
+   → panel. Recuperar contraseña.
    ========================================================= */
 
 (() => {
@@ -12,7 +12,6 @@
   const SF = window.SF;
 
   const DASHBOARD = 'dashboard.html';
-  const PROVIDERS = { google: 'Google', microsoft: 'Microsoft' };
 
   SF.onReady(() => {
     const onRecover = document.getElementById('recoverForm');
@@ -32,7 +31,6 @@
     if (login) setupLogin(login);
     if (signup) setupSignup(signup);
     if (onRecover) setupRecover();
-    if (document.querySelector('[data-provider]')) setupSocial();
   });
 
   /* ---------- Iniciar sesión ---------- */
@@ -53,14 +51,24 @@
       if (!account) {
         const existing = SF.account(email);
         UI.formError(form, existing && !existing.passHash
-          ? 'Esta cuenta se creó con Google o Microsoft. Usa ese botón para entrar.'
+          ? 'Esta cuenta no tiene contraseña. Usa «¿Olvidaste tu contraseña?» para crear una.'
           : 'Correo o contraseña incorrectos.');
         return;
       }
 
-      SF.login(email);
+      if (!SF.login(email)) {
+        UI.formError(form, 'Tu navegador no permitió guardar la sesión. Revisa que no esté bloqueado el almacenamiento del sitio.');
+        return;
+      }
       window.location.href = DASHBOARD;
     });
+
+    // Viene de crear la cuenta: el correo ya aparece escrito
+    const correo = new URLSearchParams(window.location.search).get('correo');
+    if (correo && !form.email.value) {
+      form.email.value = correo;
+      form.password.focus();
+    }
   }
 
   /* ---------- Crear cuenta ---------- */
@@ -81,13 +89,32 @@
       if (!form.terms.checked) { UI.setFieldError(form.terms, 'Debes aceptar los términos y condiciones.'); valid = false; }
       if (!valid) return;
 
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = 'Creando cuenta…';
+      let account;
       try {
-        await SF.register({ fullName, email, password });
+        account = await SF.register({ fullName, email, password });
       } catch (error) {
-        UI.setFieldError(form.email, 'Este correo ya tiene una cuenta. Inicia sesión.');
+        button.disabled = false;
+        button.textContent = 'Crear cuenta gratis';
+        if (error.message === 'exists') UI.setFieldError(form.email, 'Este correo ya tiene una cuenta. Inicia sesión.');
+        else UI.formError(form, 'No se pudo guardar la cuenta en este navegador. Revisa que el almacenamiento del sitio no esté bloqueado e inténtalo de nuevo.');
         return;
       }
-      window.location.href = DASHBOARD;
+
+      // Confirmación: la cuenta quedó guardada; ahora se entra con "Iniciar sesión"
+      form.hidden = true;
+      document.getElementById('signupFooter').hidden = true;
+      document.querySelector('.auth-card__subtitle').hidden = true;
+      document.getElementById('authTitle').textContent = 'Registro completo';
+      const done = document.getElementById('signupDone');
+      done.querySelector('.auth-success__icon').innerHTML = icon('check');
+      document.getElementById('signupDoneEmail').textContent = account.email;
+      document.getElementById('signupDoneLogin').href = `iniciar-sesion.html?correo=${encodeURIComponent(account.email)}`;
+      done.hidden = false;
+      UI.toast('Cuenta creada con éxito');
+      document.getElementById('signupDoneTitle').focus();
     });
   }
 
@@ -141,74 +168,11 @@
     });
   }
 
-  /* ---------- Google / Microsoft (simulado) ---------- */
-  function setupSocial() {
-    const dialog = document.createElement('dialog');
-    dialog.className = 'modal';
-    dialog.setAttribute('aria-labelledby', 'socialTitle');
-    dialog.innerHTML = `
-      <form class="modal__form" id="socialForm" novalidate>
-        <header class="modal__header">
-          <h2 id="socialTitle"></h2>
-          <button type="button" class="modal__close" data-close aria-label="Cerrar">${icon('close')}</button>
-        </header>
-        <p class="modal__text">Simulación: esta maqueta no se conecta con el proveedor. Indica el correo con el que quieres entrar.</p>
-        <div class="field">
-          <label for="socialEmail">Correo electrónico</label>
-          <input type="email" id="socialEmail" name="email" autocomplete="email" required>
-        </div>
-        <div class="field">
-          <label for="socialName">Nombre (solo si es tu primera vez)</label>
-          <input type="text" id="socialName" name="name" autocomplete="name">
-        </div>
-        <p class="form-error" role="alert" hidden></p>
-        <footer class="modal__footer">
-          <button type="button" class="btn btn--ghost btn--sm" data-close>Cancelar</button>
-          <button type="submit" class="btn btn--primary btn--sm">Continuar</button>
-        </footer>
-      </form>`;
-    document.body.appendChild(dialog);
-    UI.enhanceDialog(dialog);
-
-    const form = dialog.querySelector('form');
-    let provider = 'google';
-
-    document.querySelectorAll('[data-provider]').forEach((button) => {
-      button.addEventListener('click', () => {
-        provider = button.dataset.provider;
-        form.reset();
-        UI.clearErrors(form);
-        dialog.querySelector('#socialTitle').textContent = `Continuar con ${PROVIDERS[provider]}`;
-        dialog.showModal();
-      });
-    });
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      UI.clearErrors(form);
-      const email = form.email.value.trim();
-
-      if (!UI.validEmail(email)) { UI.setFieldError(form.email, 'Escribe un correo electrónico válido.'); return; }
-
-      if (!SF.account(email)) {
-        const name = form.elements.name.value.trim() || email.split('@')[0];
-        await SF.register({ fullName: name, email, password: '', provider });
-      } else {
-        SF.login(email);
-      }
-      window.location.href = DASHBOARD;
-    });
-  }
-
   /* ---------- Mockup decorativo (lado izquierdo) ---------- */
   function renderVisual() {
     const visual = document.getElementById('authVisual');
     if (!visual) return;
 
-    visual.innerHTML = `
-      <span class="float-icon float-icon--a">${icon('check')}</span>
-      <span class="float-icon float-icon--b">${icon('clock')}</span>
-      <span class="float-icon float-icon--c">${icon('coffee')}</span>
-      ${window.SFMockup ? window.SFMockup.html() : ''}`;
+    visual.innerHTML = window.SFMockup ? window.SFMockup.html() : '';
   }
 })();
