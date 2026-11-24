@@ -84,25 +84,38 @@ window.SFCookies = (() => {
 
   // ---------- Estilos (tema oscuro de StudyFlow) ----------
   const CSS = `
-    .cookies{position:fixed;left:50%;bottom:20px;z-index:9990;transform:translateX(-50%);width:min(640px,calc(100vw - 32px));padding:20px 22px;border-radius:18px;background:#101a30;color:#f3f6fb;border:1px solid rgba(41,214,221,.55);box-shadow:0 20px 60px rgba(0,0,0,.55);font-family:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif}
+    .cookies{position:fixed;left:20px;bottom:20px;z-index:9990;display:grid;grid-template-columns:auto 1fr;column-gap:16px;width:min(460px,calc(100vw - 112px));padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:24px;background:#101a30;color:#f3f6fb;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 0 1px rgba(41,214,221,.1);font-family:"Plus Jakarta Sans","Segoe UI",system-ui,-apple-system,sans-serif}
     .cookies[hidden]{display:none}
-    .cookies__cabeza{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-    .cookies__icono{font-size:24px;line-height:1}
-    .cookies__titulo{margin:0;font-size:18px;line-height:26px;font-weight:800;color:#f3f6fb}
-    .cookies__texto{margin:0 0 14px;font-size:14px;line-height:22px;color:#c3cbdb}
+    .cookies::before{content:"";position:absolute;top:0;left:24px;right:24px;height:3px;border-radius:0 0 3px 3px;background:linear-gradient(90deg,#29d6dd,#6f7cf6)}
+    .cookies__icono{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:rgba(41,214,221,.14);color:#29d6dd;grid-row:span 2}
+    .cookies__icono svg{width:24px;height:24px}
+    .cookies__titulo{margin:0 0 4px;font-size:1.1rem;line-height:1.4;font-weight:700;color:#f3f6fb}
+    .cookies__texto{margin:0;font-size:.92rem;line-height:1.55;color:#a3aec4}
+    .cookies__texto b{color:#f3f6fb;font-weight:700}
+    .cookies__pie{grid-column:1/-1;margin-top:18px}
     .cookies__botones{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-    .cookies__btn{min-height:44px;padding:0 20px;border-radius:12px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
-    .cookies__btn--aceptar{border:0;background:#29d6dd;color:#06222a}
-    .cookies__btn--rechazar{border:1px solid rgba(255,255,255,.35);background:transparent;color:#f3f6fb}
-    .cookies__btn--borrar{border:0;background:none;color:#fca5a5;text-decoration:underline;text-underline-offset:3px;padding:0 6px}
-    .cookies__btn:focus-visible{outline:3px solid #ffcf5c;outline-offset:2px}
-    .cookies__estado{margin:10px 0 0;font-size:13px;color:#86efac}
+    .cookies__btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 22px;border:1px solid transparent;border-radius:999px;font:inherit;font-size:.95rem;font-weight:600;line-height:normal;cursor:pointer;transition:transform 160ms ease,background-color 160ms ease}
+    .cookies__btn:hover{transform:translateY(-1px)}
+    .cookies__btn--aceptar{background:linear-gradient(135deg,#34e0e7,#1aa8b0);color:#04191c}
+    .cookies__btn--aceptar:hover{background:linear-gradient(135deg,#4be7ed,#21b8c1)}
+    .cookies__btn--rechazar{background:transparent;color:#f3f6fb;border-color:rgba(255,255,255,.18)}
+    .cookies__btn--rechazar:hover{background:rgba(255,255,255,.06)}
+    .cookies__btn--borrar{min-height:44px;padding:0 6px;background:none;color:#fca5a5;text-decoration:underline;text-underline-offset:3px}
+    .cookies__btn--borrar:hover{transform:none}
+    .cookies__btn:focus-visible,.cookies__link:focus-visible{outline:3px solid #ffcf5c;outline-offset:2px}
+    .cookies__link{margin-left:auto;color:#29d6dd;font-size:.85rem;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+    .cookies__estado{margin:12px 0 0;font-size:.82rem;color:#86efac}
     .cookies__estado:empty{display:none}
-    .cookies__error{margin:10px 0 0;font-size:13px;color:#fca5a5;font-weight:600}
+    .cookies__error{margin:12px 0 0;font-size:.82rem;color:#fca5a5;font-weight:600}
     .cookies-recordado{display:block;margin-top:6px;font-size:12px;color:#8b96ad}
     .cookies-config{padding:6px 0;border:0;background:none;color:inherit;font:inherit;font-size:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-    @media (max-width:560px){.cookies{bottom:76px;padding:16px}.cookies__btn{flex:1}}
+    .cookies-config:hover{color:#29d6dd}
+    @media (prefers-reduced-motion:no-preference){.cookies:not([hidden]){animation:cookies-entra .2s ease-out}}
+    @keyframes cookies-entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    html.a11y-pausa .cookies{animation:none}
+    @media (max-width:560px){.cookies{left:8px;right:8px;bottom:70px;width:auto;padding:18px;column-gap:12px;border-radius:20px}.cookies__icono{width:40px;height:40px}.cookies__btn--aceptar,.cookies__btn--rechazar{flex:1}.cookies__link{margin-left:0;width:100%;text-align:center}}
   `;
+
 
   // ---------- El aviso ----------
   let aviso, btnAceptar, btnBorrar, error, estado, origenFoco;
@@ -126,16 +139,19 @@ window.SFCookies = (() => {
     aviso.setAttribute('aria-describedby', 'cookies-texto');
     aviso.hidden = true;
     aviso.innerHTML = `
-      <div class="cookies__cabeza"><span class="cookies__icono" aria-hidden="true">🍪</span>
-        <h2 class="cookies__titulo" id="cookies-titulo">Usamos cookies</h2></div>
-      <p class="cookies__texto" id="cookies-texto">Si las aceptas, StudyFlow recordará tu nombre, tu correo, tu carrera y tu último acceso durante <b>30 días</b>. Nunca guardamos tu contraseña.</p>
+      <span class="cookies__icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 3a9 9 0 1 0 9 9 3 3 0 0 1-3.5-3A3 3 0 0 1 14 5.5 3 3 0 0 1 12 3z"/><circle cx="8.5" cy="10.5" r=".8" fill="currentColor"/><circle cx="10" cy="15.5" r=".8" fill="currentColor"/><circle cx="15" cy="14.5" r=".8" fill="currentColor"/></svg></span>
+      <h2 class="cookies__titulo" id="cookies-titulo">Usamos cookies</h2>
+      <p class="cookies__texto" id="cookies-texto">Si las aceptas, StudyFlow recordará tu nombre, correo, carrera y último acceso durante <b>30 días</b>. Nunca guardamos tu contraseña.</p>
+      <div class="cookies__pie">
       <div class="cookies__botones">
-        <button class="cookies__btn cookies__btn--aceptar" type="button" id="aceptar-cookies">Aceptar cookies</button>
+        <button class="cookies__btn cookies__btn--aceptar" type="button" id="aceptar-cookies">Aceptar</button>
         <button class="cookies__btn cookies__btn--rechazar" type="button" id="rechazar-cookies">Rechazar</button>
+        <a class="cookies__link" href="/html/privacidad.html#cookies">Más información</a>
         <button class="cookies__btn cookies__btn--borrar" type="button" id="borrar-cookies" hidden>Borrar mis datos guardados</button>
       </div>
       <p class="cookies__estado" id="estado-cookies" role="status" aria-live="polite"></p>
-      <p class="cookies__error" id="error-cookies" role="alert" hidden>Tu navegador bloqueó las cookies. Revisa su configuración para poder guardarlas.</p>`;
+      <p class="cookies__error" id="error-cookies" role="alert" hidden>Tu navegador bloqueó las cookies. Revisa su configuración para poder guardarlas.</p>
+      </div>`;
     document.body.appendChild(aviso);
 
     btnAceptar = aviso.querySelector('#aceptar-cookies');
