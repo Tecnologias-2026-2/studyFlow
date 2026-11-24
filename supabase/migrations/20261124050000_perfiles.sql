@@ -5,7 +5,7 @@
 --     La contraseña nunca está en una tabla nuestra: Supabase la guarda
 --     cifrada (bcrypt) y nadie puede leerla.
 --   * nombre, apellido y datos del perfil → tabla public.perfiles.
--- Las materias, tareas y sesiones de Pomodoro NO están aquí (siguen en el navegador).
+-- Materias, tareas, subtareas y Pomodoro: ver 20261124064000_datos_academicos.sql.
 
 create table if not exists public.perfiles (
   id uuid primary key references auth.users (id) on delete cascade,

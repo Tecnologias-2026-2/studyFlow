@@ -5,8 +5,8 @@
      - El correo y la contraseña los guarda Supabase Auth (cifrada).
      - Nombre, apellido, universidad, carrera y semestre van a la tabla
        "perfiles" de Supabase.
-     - Las materias, tareas y Pomodoro siguen en el navegador, separados
-       por correo.
+     - Materias, tareas, subtareas y Pomodoro van a sus tablas de Supabase
+       (js/sync.js); el navegador guarda una copia para funcionar sin conexión.
    Sin Supabase configurado: todo queda en el navegador (modo local).
 
    Requiere store.js (window.SF).
@@ -113,6 +113,8 @@ window.SFCuentas = (() => {
 
   /* ---------- Cerrar sesión ---------- */
   async function cerrarSesion() {
+    // Sube lo que falte y borra la copia local de las materias y tareas
+    if (window.SFSync) await window.SFSync.cerrar();
     try {
       const sb = await cliente();
       if (sb) await sb.auth.signOut();

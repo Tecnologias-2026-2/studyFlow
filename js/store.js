@@ -1,10 +1,12 @@
 /* =========================================================
-   StudyFlow — Capa de datos (prototipo sin backend)
-   Cuentas, sesión, materias, tareas y Pomodoro guardados en localStorage.
-   Cada cuenta tiene sus propios datos: una cuenta nueva empieza desde cero.
+   StudyFlow — Capa de datos
+   Materias, tareas, subtareas y Pomodoro de cada cuenta.
 
-   AVISO: es una simulación para el prototipo. En un proyecto real la
-   autenticación y los datos deben vivir en un servidor.
+   - Con Supabase (cuentas reales): estos datos viven en las tablas de
+     Supabase; el navegador guarda una copia para que la app responda al
+     instante y funcione sin conexión. js/sync.js trae los datos al abrir
+     cada página y sube cada cambio (ver SF.alGuardar).
+   - Sin Supabase (modo local): todo queda en localStorage.
    ========================================================= */
 
 window.SF = (() => {
@@ -29,7 +31,15 @@ window.SF = (() => {
 
   /* ---------- Utilidades ---------- */
   const pad = (n) => String(n).padStart(2, '0');
-  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  /** Identificador único (uuid v4): sirve como llave en Supabase. */
+  const uid = () => {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    const b = new Uint8Array(16);
+    (window.crypto || {}).getRandomValues ? window.crypto.getRandomValues(b) : b.forEach((_, i) => { b[i] = Math.floor(Math.random() * 256); });
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  };
   const norm = (email) => String(email || '').trim().toLowerCase();
 
   function esc(value) {
@@ -236,11 +246,28 @@ window.SF = (() => {
     };
   }
 
+  // Quien quiera enterarse de cada cambio guardado (la sincronización con Supabase)
+  const oyentesGuardar = [];
+  const alGuardar = (fn) => { oyentesGuardar.push(fn); };
+
   function save(d, silent) {
     const acc = currentUser();
     if (!acc) return;
     write(KEYS.data(acc.email), d);
+    oyentesGuardar.forEach((fn) => { try { fn(acc); } catch (error) { console.error(error); } });
     if (!silent) emit();
+  }
+
+  /** Reemplaza la copia local con lo que llegó del servidor (no vuelve a subirse). */
+  function reemplazarDatos(email, d, silent) {
+    const ok = write(KEYS.data(norm(email)), d);
+    if (!silent) emit();
+    return ok;
+  }
+
+  /** Borra la copia local de los datos de una cuenta (al cerrar sesión). */
+  function borrarDatosLocales(email) {
+    try { localStorage.removeItem(KEYS.data(norm(email))); } catch (error) { /* nada */ }
   }
 
   function update(mutator, silent) {
@@ -328,7 +355,7 @@ window.SF = (() => {
   function addSubtask(taskId, text) {
     update((d) => {
       const task = d.tasks.find((t) => t.id === taskId);
-      if (task) task.subtasks.push({ id: uid(), text: text.trim(), done: false });
+      if (task) task.subtasks.push({ id: uid(), text: text.trim(), done: false, createdAt: Date.now() });
     });
   }
 
@@ -450,7 +477,7 @@ window.SF = (() => {
 
   function recordSession(minutes) {
     update((d) => {
-      d.pomodoro.sessions.push({ date: todayKey(), minutes, at: Date.now() });
+      d.pomodoro.sessions.push({ id: uid(), date: todayKey(), minutes, at: Date.now() });
     });
   }
 
@@ -490,7 +517,10 @@ window.SF = (() => {
   }
 
   /* ---------- Arranque de página ---------- */
-  const ready = Promise.resolve();
+  // Las páginas se dibujan cuando el DOM está listo y, con Supabase, cuando
+  // llegaron los datos del servidor (js/sync.js llama a SF.esperar).
+  let ready = Promise.resolve();
+  const esperar = (promesa) => { ready = Promise.all([ready, Promise.resolve(promesa).catch(() => {})]); };
 
   const domReady = new Promise((resolve) => {
     if (document.readyState !== 'loading') resolve();
@@ -505,7 +535,7 @@ window.SF = (() => {
 
   return {
     COLORS, EMOJIS, MONTHS, MONTHS_SHORT, WEEKDAYS, PRIORITY,
-    esc, uid, pad, toKey, fromKey, todayKey, addDays, onReady,
+    esc, uid, pad, toKey, fromKey, todayKey, addDays, onReady, esperar, emptyData, alGuardar, reemplazarDatos, borrarDatosLocales,
     register, syncAccount, authenticate, checkPassword, setPassword, updateAccount, account, login, logout, currentUser, requireUser, fullName, initials,
     data, subjects, subjectById, addSubject, updateSubject, removeSubject,
     tasks, taskById, addTask, updateTask, removeTask, toggleTask, addSubtask, toggleSubtask, removeSubtask,
