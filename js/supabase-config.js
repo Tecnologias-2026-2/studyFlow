@@ -11,5 +11,5 @@
 
 window.SF_SUPABASE = {
   url: 'https://dguoocmhmbyazetmesow.supabase.co',
-  key: ''
+  key: 'sb_publishable_VsMulLsk0UWaFrk0FKRAPA_RQbYmAp4'
 };
