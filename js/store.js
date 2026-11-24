@@ -280,7 +280,9 @@ window.SF = (() => {
   const tasks = () => data().tasks;
   const taskById = (id) => data().tasks.find((t) => t.id === id) || null;
 
+  /** Toda tarea pertenece a una materia existente. */
   function addTask({ title, subjectId = '', priority = 'medium', dueDate = '', dueTime = '', tags = [], notes = '' }) {
+    if (!subjectById(subjectId)) throw new Error('subject');
     return update((d) => {
       const task = {
         id: uid(),
@@ -302,6 +304,7 @@ window.SF = (() => {
   }
 
   function updateTask(id, patch) {
+    if ('subjectId' in patch && !subjectById(patch.subjectId)) throw new Error('subject');
     update((d) => {
       const task = d.tasks.find((t) => t.id === id);
       if (task) Object.assign(task, patch);

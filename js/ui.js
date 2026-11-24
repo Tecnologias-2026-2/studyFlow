@@ -68,7 +68,7 @@ window.SFUI = (() => {
     return dialog;
   }
 
-  function confirmDialog({ title, text, confirmLabel = 'Eliminar' }) {
+  function confirmDialog({ title, text, confirmLabel = 'Eliminar', tone = 'danger' }) {
     return new Promise((resolve) => {
       const dialog = document.createElement('dialog');
       dialog.className = 'modal modal--small';
@@ -79,7 +79,7 @@ window.SFUI = (() => {
           <p class="modal__text"></p>
           <footer class="modal__footer">
             <button type="button" class="btn btn--ghost btn--sm" data-close>Cancelar</button>
-            <button type="button" class="btn btn--danger btn--sm" data-confirm></button>
+            <button type="button" class="btn btn--${tone === 'primary' ? 'primary' : 'danger'} btn--sm" data-confirm></button>
           </footer>
         </div>`;
       dialog.querySelector('h2').textContent = title;

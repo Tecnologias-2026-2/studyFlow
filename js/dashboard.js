@@ -80,13 +80,13 @@
     const list = document.getElementById('progressList');
     const subjects = SF.subjects();
 
-    if (!SF.tasks().length) {
-      list.innerHTML = `<li class="day-progress__item"><a href="tareas.html?nueva=1" class="link-create">Crear Tarea +</a><progress class="bar" max="100" value="0" aria-label="Sin tareas todavía"></progress></li>`;
+    if (!subjects.length) {
+      list.innerHTML = `<li class="day-progress__item"><span>Para agregar tareas primero necesitas una materia.</span><a href="materias.html?nueva=1" class="link-create">Crear materia +</a></li>`;
       return;
     }
 
-    if (!subjects.length) {
-      list.innerHTML = `<li class="day-progress__item"><span>Agrega materias para ver tu progreso por materia.</span><a href="materias.html?nueva=1" class="link-create">Crear Materia +</a></li>`;
+    if (!SF.tasks().length) {
+      list.innerHTML = `<li class="day-progress__item"><span>Aún no tienes tareas.</span><a href="tareas.html?nueva=1" class="link-create">Crear tarea +</a></li>`;
       return;
     }
 
@@ -121,7 +121,7 @@
     if (!pending.length) {
       list.innerHTML = `<li class="task-item task-item--empty">
         <span class="task-item__info"><span class="task-item__subject">No tienes tareas pendientes.</span>
-        <a href="tareas.html?nueva=1" class="task-item__name">Crear tarea +</a></span></li>`;
+        ${SF.subjects().length ? '<a href="tareas.html?nueva=1" class="task-item__name">Crear tarea +</a>' : '<a href="materias.html?nueva=1" class="task-item__name">Crea una materia para agregar tareas +</a>'}</span></li>`;
       return;
     }
 
