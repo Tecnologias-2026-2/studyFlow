@@ -217,3 +217,16 @@
     width: 100%;
   }
 }
+
+/* Privacidad y cookies */
+.cookies-perfil__texto {
+  margin: 8px 0 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+[data-cookies-config] .cookies-config {
+  color: var(--color-primary);
+  font-weight: 600;
+}

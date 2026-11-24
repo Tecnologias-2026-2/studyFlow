@@ -10,20 +10,31 @@
   const { icon } = window.SFIcons;
   const { esc } = window.SF;
 
+  // Orden del menú: Materias primero
   const NAV = [
+    ['materias', 'book', 'Materias', 'materias.html'],
     ['inicio', 'home', 'Inicio', 'dashboard.html'],
     ['tareas', 'tasks', 'Tareas', 'tareas.html'],
     ['calendario', 'calendar', 'Calendario', 'calendario.html'],
     ['pomodoro', 'timer', 'Pomodoro', 'pomodoro.html'],
-    ['materias', 'book', 'Materias', 'materias.html'],
     ['perfil', 'user', 'Perfil', 'perfil.html']
   ];
 
   window.SF.onReady(() => {
+    // Sin sesión no se muestra nada de la app: se va a "Iniciar sesión"
     const user = window.SF.requireUser();
     if (!user) return;
 
     renderShell(user);
+    document.body.classList.add('sf-autenticado');
+
+    // Con Supabase, la sesión del servidor también debe seguir abierta
+    // (si no se pudo comprobar por falta de conexión, se sigue con la copia local)
+    window.SFCuentas.verificarSesion().then((valida) => {
+      if (valida !== false) return;
+      window.SF.logout();
+      window.location.replace('iniciar-sesion.html');
+    });
     setupSidebar();
     setupSearch();
     setupNotifications();
@@ -57,7 +68,7 @@
       <header class="topbar">
         <button type="button" class="topbar__menu" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="sidebar">${icon('menu')}</button>
         <div class="topbar__search-wrap">
-          <form class="topbar__search" role="search" action="tareas.html" method="get">
+          <form class="topbar__search" role="search" aria-label="Buscar en StudyFlow" action="tareas.html" method="get">
             <label class="visually-hidden" for="globalSearch">Buscar tareas y materias</label>
             ${icon('search')}
             <input type="search" id="globalSearch" name="q" placeholder="Buscar..." autocomplete="off" aria-controls="searchResults">
@@ -65,7 +76,7 @@
           <div class="dropdown dropdown--search" id="searchResults" hidden></div>
         </div>
         <div class="topbar__actions">
-          <a class="streak" href="pomodoro.html" id="streakPill" title="Tu racha de estudio">${icon('flame')}<span></span></a>
+          <a class="streak" href="tareas.html" id="streakPill" title="Tu racha de estudio: ver mis tareas">${icon('flame')}<span></span></a>
           <div class="dropdown-wrap">
             <button type="button" class="icon-button" id="bellBtn" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
               ${icon('bell')}<span class="icon-button__dot" id="bellDot" hidden></span>
@@ -79,8 +90,8 @@
     document.querySelector('[data-shell="sidebar"]').outerHTML = sidebar;
     document.querySelector('[data-shell="topbar"]').outerHTML = topbar;
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      window.SF.logout();
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await window.SFCuentas.cerrarSesion();
       window.location.href = 'iniciar-sesion.html';
     });
   }
@@ -92,7 +103,9 @@
     if (!user) return;
 
     const streak = SF.streak();
-    document.querySelector('#streakPill span').textContent = `${streak} ${streak === 1 ? 'día' : 'días'}`;
+    const streakText = `${streak} ${streak === 1 ? 'día' : 'días'}`;
+    document.querySelector('#streakPill span').textContent = streakText;
+    document.getElementById('streakPill').setAttribute('aria-label', `Racha de estudio: ${streakText}. Ver mis tareas`);
 
     const badge = document.getElementById('taskBadge');
     const pending = SF.counts().pending;
@@ -103,6 +116,8 @@
     const avatar = document.getElementById('avatarLink');
     avatar.innerHTML = user.avatar ? `<img src="${esc(user.avatar)}" alt="">` : esc(SF.initials(user));
     avatar.title = SF.fullName(user);
+    // El nombre accesible incluye las iniciales visibles (regla label-content-name-mismatch)
+    avatar.setAttribute('aria-label', user.avatar ? `Mi perfil: ${SF.fullName(user)}` : `${SF.initials(user)} · Mi perfil de ${SF.fullName(user)}`);
 
     renderNotifications();
   }

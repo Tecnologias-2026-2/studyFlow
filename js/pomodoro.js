@@ -207,10 +207,9 @@
     if (timer.status === 'running') tick();
   }
 
+  // En pausa el reloj se atenúa de forma fija (sin parpadeo automático).
   function startBlink() {
     stopBlink();
-    if (reducedMotion) return;
-    blinkId = setInterval(() => { showDash = !showDash; renderTimer(); }, 600);
   }
 
   function stopBlink() {
@@ -226,6 +225,7 @@
     const text = format(timer.remaining);
     const dashed = timer.status === 'paused' && showDash;
     $('timerDisplay').innerHTML = segmentDisplay(dashed ? '--:--' : text);
+    $('timerDisplay').classList.toggle('is-paused', timer.status === 'paused');
     $('timerDisplay').setAttribute('aria-label', `Tiempo restante ${Math.floor(timer.remaining / 60)} minutos y ${timer.remaining % 60} segundos`);
 
     const elapsed = timer.status === 'idle' ? 0 : 1 - timer.remaining / duration(timer.mode);

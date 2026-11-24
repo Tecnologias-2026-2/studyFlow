@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/pomodoro.css">
+  <script src="../js/accesibilidad.js"></script>
+  <script src="../js/cookies.js" defer></script>
 </head>
 <body class="app" data-page="pomodoro">
 
@@ -25,6 +27,7 @@
       <div data-shell="topbar"></div>
 
       <main class="app-content" id="contenido">
+        <h1 class="visually-hidden">Pomodoro</h1>
         <div class="pomodoro-layout">
 
           <section class="panel settings" aria-labelledby="cfgTitle">
@@ -151,6 +154,9 @@
 
   <script src="../js/icons.js"></script>
   <script src="../js/store.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="../js/cuentas.js"></script>
+  <script src="../js/sync.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/pomodoro.js"></script>

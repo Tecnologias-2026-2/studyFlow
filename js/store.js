@@ -1,10 +1,12 @@
 /* =========================================================
-   StudyFlow — Capa de datos (prototipo sin backend)
-   Cuentas, sesión, materias, tareas y Pomodoro guardados en localStorage.
-   Cada cuenta tiene sus propios datos: una cuenta nueva empieza desde cero.
+   StudyFlow — Capa de datos
+   Materias, tareas, subtareas y Pomodoro de cada cuenta.
 
-   AVISO: es una simulación para el prototipo. En un proyecto real la
-   autenticación y los datos deben vivir en un servidor.
+   - Con Supabase (cuentas reales): estos datos viven en las tablas de
+     Supabase; el navegador guarda una copia para que la app responda al
+     instante y funcione sin conexión. js/sync.js trae los datos al abrir
+     cada página y sube cada cambio (ver SF.alGuardar).
+   - Sin Supabase (modo local): todo queda en localStorage.
    ========================================================= */
 
 window.SF = (() => {
@@ -29,7 +31,15 @@ window.SF = (() => {
 
   /* ---------- Utilidades ---------- */
   const pad = (n) => String(n).padStart(2, '0');
-  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  /** Identificador único (uuid v4): sirve como llave en Supabase. */
+  const uid = () => {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    const b = new Uint8Array(16);
+    (window.crypto || {}).getRandomValues ? window.crypto.getRandomValues(b) : b.forEach((_, i) => { b[i] = Math.floor(Math.random() * 256); });
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  };
   const norm = (email) => String(email || '').trim().toLowerCase();
 
   function esc(value) {
@@ -89,12 +99,19 @@ window.SF = (() => {
   function saveAccount(acc) {
     const all = accounts();
     all[acc.email] = acc;
-    write(KEYS.accounts, all);
+    return write(KEYS.accounts, all);
   }
 
-  async function register({ fullName, email, password, provider = 'email' }) {
+  /**
+   * Crea la cuenta y comprueba que quedó guardada. NO inicia sesión:
+   * después del registro la persona entra por "Iniciar sesión".
+   * Lanza Error('exists') si el correo ya existe y Error('storage') si el
+   * navegador no permitió guardarla.
+   */
+  async function register({ fullName, email, password }) {
     email = norm(email);
     if (account(email)) throw new Error('exists');
+    if (!password || password.length < 8) throw new Error('password');
 
     const salt = uid();
     const [name, ...rest] = String(fullName || '').trim().split(/\s+/);
@@ -106,16 +123,50 @@ window.SF = (() => {
       career: '',
       semester: '',
       avatar: '',
-      provider,
+      provider: 'email',
       createdAt: new Date().toISOString(),
       salt,
-      passHash: password ? await hashPassword(password, salt) : null
+      passHash: await hashPassword(password, salt)
     };
 
-    saveAccount(acc);
-    write(KEYS.data(email), emptyData());
-    login(email);
-    return acc;
+    const guardada = saveAccount(acc) && write(KEYS.data(email), emptyData());
+    // Se vuelve a leer para confirmar que de verdad quedó guardada
+    const leida = account(email);
+    if (!guardada || !leida || leida.passHash !== acc.passHash) {
+      const all = accounts();
+      delete all[email];
+      write(KEYS.accounts, all);
+      throw new Error('storage');
+    }
+    return leida;
+  }
+
+  /**
+   * Cuenta que viene de Supabase: se guarda en el navegador solo lo necesario
+   * para mostrar el perfil y separar los datos (sin contraseña: esa la
+   * guarda Supabase). Devuelve false si el navegador no la pudo guardar.
+   */
+  function syncAccount(perfil) {
+    const email = norm(perfil.email);
+    const previa = account(email) || {};
+    const acc = {
+      ...previa,
+      email,
+      name: perfil.nombre ?? previa.name ?? '',
+      lastName: perfil.apellido ?? previa.lastName ?? '',
+      university: perfil.universidad ?? previa.university ?? '',
+      career: perfil.carrera ?? previa.career ?? '',
+      semester: perfil.semestre ? String(perfil.semestre) : (previa.semester || ''),
+      avatar: previa.avatar || '',
+      provider: 'supabase',
+      supabaseId: perfil.id || previa.supabaseId || '',
+      createdAt: perfil.creado_en || previa.createdAt || new Date().toISOString(),
+      salt: null,
+      passHash: null
+    };
+    if (!saveAccount(acc)) return false;
+    if (!read(KEYS.data(email), null)) write(KEYS.data(email), emptyData());
+    return true;
   }
 
   async function authenticate(email, password) {
@@ -195,11 +246,28 @@ window.SF = (() => {
     };
   }
 
+  // Quien quiera enterarse de cada cambio guardado (la sincronización con Supabase)
+  const oyentesGuardar = [];
+  const alGuardar = (fn) => { oyentesGuardar.push(fn); };
+
   function save(d, silent) {
     const acc = currentUser();
     if (!acc) return;
     write(KEYS.data(acc.email), d);
+    oyentesGuardar.forEach((fn) => { try { fn(acc); } catch (error) { console.error(error); } });
     if (!silent) emit();
+  }
+
+  /** Reemplaza la copia local con lo que llegó del servidor (no vuelve a subirse). */
+  function reemplazarDatos(email, d, silent) {
+    const ok = write(KEYS.data(norm(email)), d);
+    if (!silent) emit();
+    return ok;
+  }
+
+  /** Borra la copia local de los datos de una cuenta (al cerrar sesión). */
+  function borrarDatosLocales(email) {
+    try { localStorage.removeItem(KEYS.data(norm(email))); } catch (error) { /* nada */ }
   }
 
   function update(mutator, silent) {
@@ -239,7 +307,9 @@ window.SF = (() => {
   const tasks = () => data().tasks;
   const taskById = (id) => data().tasks.find((t) => t.id === id) || null;
 
+  /** Toda tarea pertenece a una materia existente. */
   function addTask({ title, subjectId = '', priority = 'medium', dueDate = '', dueTime = '', tags = [], notes = '' }) {
+    if (!subjectById(subjectId)) throw new Error('subject');
     return update((d) => {
       const task = {
         id: uid(),
@@ -261,6 +331,7 @@ window.SF = (() => {
   }
 
   function updateTask(id, patch) {
+    if ('subjectId' in patch && !subjectById(patch.subjectId)) throw new Error('subject');
     update((d) => {
       const task = d.tasks.find((t) => t.id === id);
       if (task) Object.assign(task, patch);
@@ -284,7 +355,7 @@ window.SF = (() => {
   function addSubtask(taskId, text) {
     update((d) => {
       const task = d.tasks.find((t) => t.id === taskId);
-      if (task) task.subtasks.push({ id: uid(), text: text.trim(), done: false });
+      if (task) task.subtasks.push({ id: uid(), text: text.trim(), done: false, createdAt: Date.now() });
     });
   }
 
@@ -406,7 +477,7 @@ window.SF = (() => {
 
   function recordSession(minutes) {
     update((d) => {
-      d.pomodoro.sessions.push({ date: todayKey(), minutes, at: Date.now() });
+      d.pomodoro.sessions.push({ id: uid(), date: todayKey(), minutes, at: Date.now() });
     });
   }
 
@@ -445,74 +516,11 @@ window.SF = (() => {
     return h ? `${h}h ${pad(m)}m` : `${m}m`;
   }
 
-  /* ---------- Datos de demostración ---------- */
-  function demoData() {
-    const today = todayKey();
-    const mk = (name, teacher, emoji, color, offset) => ({ id: uid(), name, teacher, emoji, color, createdAt: Date.now() + offset });
-    const calc = mk('Cálculo Diferencial', 'Dr. Ramírez Torres', '📐', 'red', 0);
-    const fis = mk('Física General II', 'Dra. López Vega', '⚛️', 'blue', 1);
-    const his = mk('Historia Universal', 'Mtro. Gutiérrez', '📜', 'amber', 2);
-    const lit = mk('Literatura Contemporánea', 'Mtra. Sánchez', '📚', 'purple', 3);
-    const qui = mk('Química Orgánica', 'Dr. Mendoza', '🧪', 'green', 4);
-    const pro = mk('Programación Avanzada', 'Ing. Flores', '💻', 'sky', 5);
-
-    const subs = (list, doneCount) => list.map((text, i) => ({ id: uid(), text, done: i < doneCount }));
-    const task = (title, subject, priority, offset, time, tags, subtasks, extra = {}) => ({
-      id: uid(), title, subjectId: subject.id, priority,
-      dueDate: offset === null ? '' : addDays(today, offset), dueTime: time, tags, notes: '',
-      subtasks, done: false, completedAt: null, createdAt: Date.now() + Math.random() * 1000, ...extra
-    });
-    const doneNow = { done: true, completedAt: new Date().toISOString() };
-
-    const sessions = [{ date: today, minutes: 52, at: Date.now() }, { date: today, minutes: 53, at: Date.now() }];
-    for (let i = 1; i <= 6; i += 1) sessions.push({ date: addDays(today, -i), minutes: 25, at: Date.now() });
-
-    return {
-      subjects: [calc, fis, his, lit, qui, pro],
-      tasks: [
-        task('Tarea de Cálculo Diferencial', calc, 'high', 0, '23:59', ['Parcial', 'Cálculo'], subs(['Ejercicios del Capítulo 4', 'Límites laterales', 'Derivadas básicas', 'Regla de la cadena', 'Repaso final'], 3), { notes: 'Ejercicios del capítulo 4, problemas 1-20' }),
-        task('Leer capítulos 5-7 de Historia', his, 'medium', 1, '09:00', ['Lectura'], subs(['Capítulo 5', 'Capítulo 6', 'Capítulo 7'], 1)),
-        task('Ejercicios de Química Orgánica', qui, 'medium', 3, '20:00', ['Lab'], subs(['Nomenclatura', 'Isomería', 'Reacciones', 'Guía de laboratorio'], 0)),
-        task('Ensayo de Literatura Contemporánea', lit, 'low', 6, '', ['Ensayo', 'Entrega'], []),
-        task('Preparar exposición de Historia', his, 'high', 10, '', ['Exposición'], subs(['Tema', 'Fuentes', 'Guion', 'Diapositivas', 'Ensayo general', 'Presentación'], 1)),
-        task('Resolver guía de Física', fis, 'medium', -1, '18:00', ['Guía'], [], doneNow),
-        task('Quiz de Programación', pro, 'low', 0, '10:00', ['Quiz'], [], doneNow),
-        task('Informe de laboratorio', qui, 'high', -2, '', ['Lab'], [], doneNow)
-      ],
-      pomodoro: { settings: defaultSettings(), sessions, timer: null }
-    };
-  }
-
-  async function startDemo() {
-    const email = 'sofia.martinez@unimilitar.edu.co';
-    const salt = 'demo';
-    saveAccount({
-      email,
-      name: 'Sofía',
-      lastName: 'Martínez Rojas',
-      university: 'Universidad Militar Nueva Granada',
-      career: 'Ingeniería en Sistemas Computacionales',
-      semester: '5',
-      avatar: '',
-      provider: 'demo',
-      createdAt: '2026-08-01T12:00:00.000Z',
-      salt,
-      passHash: await hashPassword('demo1234', salt)
-    });
-    write(KEYS.data(email), demoData());
-    login(email);
-  }
-
   /* ---------- Arranque de página ---------- */
-  const ready = (async () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('demo') === '1') {
-      if (!currentUser()) await startDemo();
-      params.delete('demo');
-      const query = params.toString();
-      window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : '') + window.location.hash);
-    }
-  })();
+  // Las páginas se dibujan cuando el DOM está listo y, con Supabase, cuando
+  // llegaron los datos del servidor (js/sync.js llama a SF.esperar).
+  let ready = Promise.resolve();
+  const esperar = (promesa) => { ready = Promise.all([ready, Promise.resolve(promesa).catch(() => {})]); };
 
   const domReady = new Promise((resolve) => {
     if (document.readyState !== 'loading') resolve();
@@ -527,12 +535,12 @@ window.SF = (() => {
 
   return {
     COLORS, EMOJIS, MONTHS, MONTHS_SHORT, WEEKDAYS, PRIORITY,
-    esc, uid, pad, toKey, fromKey, todayKey, addDays, onReady,
-    register, authenticate, checkPassword, setPassword, updateAccount, account, login, logout, currentUser, requireUser, fullName, initials,
+    esc, uid, pad, toKey, fromKey, todayKey, addDays, onReady, esperar, emptyData, alGuardar, reemplazarDatos, borrarDatosLocales,
+    register, syncAccount, authenticate, checkPassword, setPassword, updateAccount, account, login, logout, currentUser, requireUser, fullName, initials,
     data, subjects, subjectById, addSubject, updateSubject, removeSubject,
     tasks, taskById, addTask, updateTask, removeTask, toggleTask, addSubtask, toggleSubtask, removeSubtask,
     dueDateTime, isOverdue, taskFraction, formatDue, byDue, counts, subjectStats, daySummary, completedToday, reminders, reminderStyle,
     settings, saveSettings, recordSession, sessionsToday, minutesToday, streak, getTimer, saveTimer,
-    isNewUser, formatHours, formatMinutes, startDemo
+    isNewUser, formatHours, formatMinutes
   };
 })();

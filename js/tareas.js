@@ -80,6 +80,7 @@
 
     $('taskForm').addEventListener('submit', onTaskSubmit);
     $('taskTitle').addEventListener('input', syncSubmitState);
+    $('taskSubject').addEventListener('change', syncSubmitState);
   }
 
   function setFiltersOpen(open) {
@@ -160,7 +161,7 @@
     $('tabPending').tabIndex = pending ? 0 : -1;
     $('tabDone').setAttribute('aria-selected', String(!pending));
     $('tabDone').tabIndex = pending ? -1 : 0;
-    $('taskCards').setAttribute('aria-labelledby', pending ? 'tabPending' : 'tabDone');
+    $('taskPanel').setAttribute('aria-labelledby', pending ? 'tabPending' : 'tabDone');
   }
 
   function renderFilterOptions() {
@@ -198,6 +199,10 @@
     } else if (state.tab === 'done') {
       title = 'Aún no has completado tareas';
       text = 'Cuando marques una tarea como completada aparecerá aquí.';
+    } else if (!SF.subjects().length) {
+      title = 'Primero crea una materia';
+      text = 'Cada tarea pertenece a una materia. Crea tu primera materia para empezar a agregar tareas.';
+      action = '<a class="btn btn--primary btn--sm" href="materias.html?nueva=1">+ Crear materia</a>';
     } else if (none) {
       title = 'Aún no has creado tareas';
       text = 'Crea tu primera tarea para organizar tu carga académica.';
@@ -208,7 +213,7 @@
       action = '<button type="button" class="btn btn--primary btn--sm" data-create>+ Nueva tarea</button>';
     }
 
-    return `<div class="empty-state"><span class="empty-state__icon">${icon('clipboard')}</span><h3>${title}</h3><p>${text}</p>${action}</div>`;
+    return `<div class="empty-state"><span class="empty-state__icon">${icon('clipboard')}</span><h2>${title}</h2><p>${text}</p>${action}</div>`;
   }
 
   function cardHTML(task) {
@@ -231,11 +236,14 @@
       </li>`).join('');
 
     return `
-      <li class="task-card${task.done ? ' is-done' : ''}${overdue ? ' is-overdue' : ''}" data-id="${task.id}">
+      <li class="task-card${task.done ? ' is-done' : ''}${overdue ? ' is-overdue' : ''}${subs.length ? ' has-subs' : ''}" data-id="${task.id}">
         <div class="task-card__head">
+          ${subs.length
+            ? `<button type="button" class="task-card__toggle" data-toggle-subs data-fk="toggle-${task.id}" aria-expanded="${isOpen}" aria-controls="subs-${task.id}" aria-label="${isOpen ? 'Ocultar' : 'Mostrar'} las ${subs.length} subtareas de «${esc(task.title)}»">${icon('right')}</button>`
+            : '<span class="task-card__toggle-space" aria-hidden="true"></span>'}
           <input type="checkbox" class="task-check" data-fk="task-${task.id}" aria-label="Marcar «${esc(task.title)}» como ${task.done ? 'pendiente' : 'completada'}"${task.done ? ' checked' : ''}>
           <div class="task-card__body">
-            <h3 class="task-card__title">${esc(task.title)}</h3>
+            <h2 class="task-card__title">${esc(task.title)}</h2>
             <div class="task-card__meta">
               ${subject ? `<span class="chip" data-color="${subject.color}">${esc(subject.name)}</span>` : ''}
               <span class="badge badge--${task.priority}">${SF.PRIORITY[task.priority].label}</span>
@@ -255,7 +263,7 @@
         <progress class="bar" max="100" value="${percent}" aria-label="Progreso de «${esc(task.title)}»: ${percent}%"></progress>
         ${hint ? `<p class="task-card__hint">${esc(hint)}</p>` : ''}
         <div class="task-card__subs" id="subs-${task.id}"${isOpen ? '' : ' hidden'}>
-          ${subs.length ? `<ul class="subtask-list">${subItems}</ul>` : ''}
+          ${subs.length ? `<ul class="subtask-list" aria-label="Subtareas de «${esc(task.title)}»">${subItems}</ul>` : ''}
           <form class="subtask-form">
             <input type="text" placeholder="Agregar subtarea" aria-label="Nueva subtarea para «${esc(task.title)}»" maxlength="100" data-fk="subadd-${task.id}">
             <button type="submit" class="btn btn--outline btn--sm">Agregar</button>
@@ -316,13 +324,22 @@
     const id = card.dataset.id;
 
     if (event.target.closest('[data-toggle-subs]')) {
-      const button = card.querySelector('[data-toggle-subs]');
+      const clicked = event.target.closest('[data-toggle-subs]');
       const panel = card.querySelector('.task-card__subs');
       const open = panel.hidden;
       panel.hidden = !open;
-      button.setAttribute('aria-expanded', String(open));
+      const task = SF.taskById(id);
+      const total = (task.subtasks || []).length;
+      // La flecha y el texto de progreso abren/cierran el mismo panel
+      card.querySelectorAll('[data-toggle-subs]').forEach((button) => {
+        button.setAttribute('aria-expanded', String(open));
+        if (button.classList.contains('task-card__toggle')) {
+          button.setAttribute('aria-label', `${open ? 'Ocultar' : 'Mostrar'} las ${total} subtareas de «${task.title}»`);
+        }
+      });
       if (open) expanded.add(id); else expanded.delete(id);
-      if (open) panel.querySelector('.subtask-form input').focus();
+      // Sin subtareas, abrir el panel es para agregar una: el foco va al campo
+      if (open && (!total || !clicked.classList.contains('task-card__toggle'))) panel.querySelector('.subtask-form input').focus();
     } else if (event.target.closest('[data-edit]')) {
       openModal(id);
     } else if (event.target.closest('[data-delete]')) {
@@ -346,14 +363,26 @@
   }
 
   /* ---------- Modal crear / editar ---------- */
+  /** Sin materias no se pueden crear tareas: se ofrece crear la primera. */
+  async function pedirMateria() {
+    const ok = await UI.confirmDialog({
+      title: 'Primero crea una materia',
+      text: 'Cada tarea debe pertenecer a una materia. Crea al menos una materia y luego podrás agregar tareas.',
+      confirmLabel: 'Crear materia',
+      tone: 'primary'
+    });
+    if (ok) window.location.href = 'materias.html?nueva=1';
+  }
+
   function openModal(id = null, presetDate = '') {
+    if (!id && !SF.subjects().length) { pedirMateria(); return; }
     const form = $('taskForm');
     editingId = id;
     form.reset();
     UI.clearErrors(form);
 
     const subjects = SF.subjects();
-    form.subjectId.innerHTML = '<option value="">Seleccionar Materia</option>' +
+    form.subjectId.innerHTML = '<option value="" disabled selected>Seleccionar materia</option>' +
       subjects.map((s) => `<option value="${s.id}">${esc(s.emoji)} ${esc(s.name)}</option>`).join('');
 
     let hint = form.subjectId.parentElement.querySelector('.field__hint');
@@ -362,7 +391,7 @@
       hint.className = 'field__hint';
       form.subjectId.parentElement.appendChild(hint);
     }
-    hint.innerHTML = subjects.length ? '' : 'Aún no tienes materias. <a href="materias.html?nueva=1">Crear materia</a>';
+    hint.innerHTML = '¿No está tu materia? <a href="materias.html?nueva=1">Crear materia</a>';
 
     const task = id ? SF.taskById(id) : null;
     $('taskModalTitle').textContent = task ? 'Editar tarea' : 'Nueva tarea';
@@ -370,7 +399,7 @@
 
     if (task) {
       form.elements.title.value = task.title;
-      form.subjectId.value = task.subjectId || '';
+      form.subjectId.value = SF.subjectById(task.subjectId) ? task.subjectId : '';
       form.priority.value = task.priority;
       form.dueDate.value = task.dueDate || '';
       form.dueTime.value = task.dueTime || '';
@@ -385,9 +414,9 @@
     form.elements.title.focus();
   }
 
-  /** Como en el diseño: «Crear tarea» se habilita al escribir un nombre. */
+  /** «Crear tarea» se habilita con nombre y materia. */
   function syncSubmitState() {
-    $('taskSubmit').disabled = !$('taskTitle').value.trim();
+    $('taskSubmit').disabled = !$('taskTitle').value.trim() || !$('taskSubject').value;
   }
 
   function onTaskSubmit(event) {
@@ -401,6 +430,7 @@
     let valid = true;
 
     if (!title) { UI.setFieldError(form.elements.title, 'Escribe el nombre de la tarea.'); valid = false; }
+    if (!SF.subjectById(form.subjectId.value)) { UI.setFieldError(form.subjectId, 'Elige la materia de la tarea.'); valid = false; }
     if (dueTime && !dueDate) { UI.setFieldError(form.dueDate, 'Elige una fecha para usar la hora.'); valid = false; }
     if (!valid) return;
 
@@ -415,13 +445,18 @@
       notes: form.notes.value.trim()
     };
 
-    if (editingId) {
-      SF.updateTask(editingId, payload);
-      UI.toast('Tarea actualizada');
-    } else {
-      SF.addTask(payload);
-      state.tab = 'pending';
-      UI.toast('Tarea creada');
+    try {
+      if (editingId) {
+        SF.updateTask(editingId, payload);
+        UI.toast('Tarea actualizada');
+      } else {
+        SF.addTask(payload);
+        state.tab = 'pending';
+        UI.toast('Tarea creada');
+      }
+    } catch (error) {
+      UI.setFieldError(form.subjectId, 'La materia elegida ya no existe. Elige otra.');
+      return;
     }
 
     $('taskModal').close();

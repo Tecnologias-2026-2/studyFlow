@@ -393,3 +393,8 @@
     order: -1;
   }
 }
+
+/* En pausa: el reloj se atenúa (estado fijo, sin parpadeo) */
+.timer-ring__display.is-paused {
+  opacity: 0.55;
+}

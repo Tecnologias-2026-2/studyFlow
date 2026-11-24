@@ -56,12 +56,16 @@
       ['pending', 'target', counts.pending, 'Tareas pendientes'],
       ['streak', 'flame', `${SF.streak()}d`, 'Racha']
     ];
-    document.getElementById('dashStats').innerHTML = items.map(([tone, ico, value, label]) => `
-      <li class="stat-card stat-card--${tone}">
+    document.getElementById('dashStats').innerHTML = items.map(([tone, ico, value, label]) => {
+      const content = `
         <span class="stat-card__icon">${icon(ico)}</span>
         <p class="stat-card__value">${value}</p>
-        <p class="stat-card__label">${label}</p>
-      </li>`).join('');
+        <p class="stat-card__label">${label}</p>`;
+      // La racha lleva a Tareas (no al Pomodoro)
+      return tone === 'streak'
+        ? `<li class="stat-card stat-card--${tone} stat-card--link"><a class="stat-card__link" href="tareas.html">${content}<span class="visually-hidden">: ver mis tareas</span></a></li>`
+        : `<li class="stat-card stat-card--${tone}">${content}</li>`;
+    }).join('');
   }
 
   function renderProgress() {
@@ -76,13 +80,13 @@
     const list = document.getElementById('progressList');
     const subjects = SF.subjects();
 
-    if (!SF.tasks().length) {
-      list.innerHTML = `<li class="day-progress__item"><a href="tareas.html?nueva=1" class="link-create">Crear Tarea +</a><progress class="bar" max="100" value="0" aria-label="Sin tareas todavía"></progress></li>`;
+    if (!subjects.length) {
+      list.innerHTML = `<li class="day-progress__item"><span>Para agregar tareas primero necesitas una materia.</span><a href="materias.html?nueva=1" class="link-create">Crear materia +</a></li>`;
       return;
     }
 
-    if (!subjects.length) {
-      list.innerHTML = `<li class="day-progress__item"><span>Agrega materias para ver tu progreso por materia.</span><a href="materias.html?nueva=1" class="link-create">Crear Materia +</a></li>`;
+    if (!SF.tasks().length) {
+      list.innerHTML = `<li class="day-progress__item"><span>Aún no tienes tareas.</span><a href="tareas.html?nueva=1" class="link-create">Crear tarea +</a></li>`;
       return;
     }
 
@@ -115,11 +119,9 @@
     const pending = SF.tasks().filter((t) => !t.done).sort(SF.byDue).slice(0, 4);
 
     if (!pending.length) {
-      list.innerHTML = `<li class="task-item">
-        <input type="checkbox" class="task-item__check" disabled aria-label="Aún no hay tareas">
-        <span class="task-item__priority task-item__priority--high" aria-hidden="true"></span>
-        <span class="task-item__info"><a href="tareas.html?nueva=1" class="task-item__name">Crear Tarea +</a></span>
-        <span class="badge badge--high">Prioridad</span></li>`;
+      list.innerHTML = `<li class="task-item task-item--empty">
+        <span class="task-item__info"><span class="task-item__subject">No tienes tareas pendientes.</span>
+        ${SF.subjects().length ? '<a href="tareas.html?nueva=1" class="task-item__name">Crear tarea +</a>' : '<a href="materias.html?nueva=1" class="task-item__name">Crea una materia para agregar tareas +</a>'}</span></li>`;
       return;
     }
 
@@ -143,4 +145,16 @@
       });
     });
   }
+})();
+
+/* Consejo del día: lo entrega el backend (GET /api/consejos/hoy) */
+(() => {
+  const card = document.getElementById('tipCard');
+  if (!card || !window.SFApi) return;
+  window.SFApi.consejoDelDia()
+    .then((consejo) => {
+      document.getElementById('tipText').textContent = consejo.texto;
+      card.hidden = false;
+    })
+    .catch(() => { /* sin servidor no se muestra */ });
 })();

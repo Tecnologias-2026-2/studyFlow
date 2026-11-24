@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/inicio.css">
   <link rel="stylesheet" href="../css/mockup.css">
+  <script src="../js/accesibilidad.js"></script>
+  <script src="../js/cookies.js" defer></script>
 </head>
 <body>
 
@@ -31,15 +33,9 @@
 
       <nav class="navbar__nav" id="primary-navigation" aria-label="Navegación principal">
         <ul class="navbar__links">
+          <li><a href="#inicio">Inicio</a></li>
           <li><a href="#funciones">Características</a></li>
           <li><a href="#testimonios">Testimonios</a></li>
-          <!-- Páginas futuras (descomentar al crearlas en html/):
-          <li><a href="pomodoro.html">Pomodoro</a></li>
-          <li><a href="materias.html">Materias</a></li>
-          <li><a href="tareas.html">Tareas</a></li>
-          <li><a href="logros.html">Logros</a></li>
-          <li><a href="metas.html">Metas</a></li>
-          -->
         </ul>
       </nav>
 
@@ -55,6 +51,7 @@
 
     <div class="mobile-menu" id="mobileMenu" hidden>
       <ul class="mobile-menu__links">
+        <li><a href="#inicio">Inicio</a></li>
         <li><a href="#funciones">Características</a></li>
         <li><a href="#testimonios">Testimonios</a></li>
       </ul>
@@ -86,7 +83,6 @@
             <a href="crear-cuenta.html" class="btn btn--primary btn--large">Comenzar Gratis</a>
             <a href="iniciar-sesion.html" class="btn btn--outline btn--large">Iniciar Sesión</a>
           </div>
-          <a href="dashboard.html?demo=1" class="hero__demo">¿Solo quieres mirar? Explora la demo →</a>
 
           <div class="hero__social-proof">
             <div class="hero__avatars" aria-hidden="true">
@@ -230,17 +226,17 @@
       </div>
 
       <nav class="footer__col" aria-label="Enlaces del producto">
-        <h4>Producto</h4>
+        <h2 class="footer__heading">Producto</h2>
         <ul>
+          <li><a href="#inicio">Inicio</a></li>
           <li><a href="#funciones">Características</a></li>
           <li><a href="#testimonios">Testimonios</a></li>
           <li><a href="crear-cuenta.html">Comenzar Gratis</a></li>
-          <li><a href="dashboard.html?demo=1">Ver demo</a></li>
         </ul>
       </nav>
 
       <nav class="footer__col" aria-label="Enlaces legales">
-        <h4>Legal</h4>
+        <h2 class="footer__heading">Legal</h2>
         <ul>
           <li><a href="terminos.html">Términos de uso</a></li>
           <li><a href="privacidad.html">Privacidad</a></li>
@@ -248,7 +244,7 @@
       </nav>
 
       <div class="footer__col">
-        <h4>Contacto</h4>
+        <h2 class="footer__heading">Contacto</h2>
         <ul>
           <li><a href="mailto:hola@studyflow.app">hola@studyflow.app</a></li>
         </ul>

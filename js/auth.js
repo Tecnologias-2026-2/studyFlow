@@ -1,7 +1,7 @@
 /* =========================================================
-   StudyFlow — Autenticación (simulada, sin backend)
-   Iniciar sesión, crear cuenta, recuperar contraseña y acceso
-   simulado con Google / Microsoft.
+   StudyFlow — Autenticación (cuentas guardadas en el navegador)
+   Crear cuenta → mensaje "Cuenta creada con éxito" → Iniciar sesión
+   → panel. Recuperar contraseña.
    ========================================================= */
 
 (() => {
@@ -10,9 +10,9 @@
   const { icon } = window.SFIcons;
   const UI = window.SFUI;
   const SF = window.SF;
+  const Cuentas = window.SFCuentas;
 
   const DASHBOARD = 'dashboard.html';
-  const PROVIDERS = { google: 'Google', microsoft: 'Microsoft' };
 
   SF.onReady(() => {
     const onRecover = document.getElementById('recoverForm');
@@ -32,7 +32,6 @@
     if (login) setupLogin(login);
     if (signup) setupSignup(signup);
     if (onRecover) setupRecover();
-    if (document.querySelector('[data-provider]')) setupSocial();
   });
 
   /* ---------- Iniciar sesión ---------- */
@@ -49,18 +48,26 @@
       if (!password) { UI.setFieldError(form.password, 'Escribe tu contraseña.'); valid = false; }
       if (!valid) return;
 
-      const account = await SF.authenticate(email, password);
-      if (!account) {
-        const existing = SF.account(email);
-        UI.formError(form, existing && !existing.passHash
-          ? 'Esta cuenta se creó con Google o Microsoft. Usa ese botón para entrar.'
-          : 'Correo o contraseña incorrectos.');
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      try {
+        await Cuentas.iniciarSesion(email, password);
+      } catch (error) {
+        button.disabled = false;
+        UI.formError(form, Cuentas.mensaje(error));
         return;
       }
-
-      SF.login(email);
       window.location.href = DASHBOARD;
     });
+
+    // Viene de crear la cuenta (o de confirmar el correo): el correo ya aparece escrito
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('confirmada') === '1') UI.toast('Correo confirmado. Ya puedes iniciar sesión.');
+    const correo = params.get('correo');
+    if (correo && !form.email.value) {
+      form.email.value = correo;
+      form.password.focus();
+    }
   }
 
   /* ---------- Crear cuenta ---------- */
@@ -81,13 +88,35 @@
       if (!form.terms.checked) { UI.setFieldError(form.terms, 'Debes aceptar los términos y condiciones.'); valid = false; }
       if (!valid) return;
 
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = 'Creando cuenta…';
+      let account;
       try {
-        await SF.register({ fullName, email, password });
+        account = await Cuentas.registrar({ fullName, email, password });
       } catch (error) {
-        UI.setFieldError(form.email, 'Este correo ya tiene una cuenta. Inicia sesión.');
+        button.disabled = false;
+        button.textContent = 'Crear cuenta gratis';
+        if (error.codigo === 'exists') UI.setFieldError(form.email, Cuentas.mensaje(error));
+        else UI.formError(form, Cuentas.mensaje(error));
         return;
       }
-      window.location.href = DASHBOARD;
+
+      // Confirmación: la cuenta quedó guardada; ahora se entra con "Iniciar sesión"
+      form.hidden = true;
+      document.getElementById('signupFooter').hidden = true;
+      document.querySelector('.auth-card__subtitle').hidden = true;
+      document.getElementById('authTitle').textContent = 'Registro completo';
+      const done = document.getElementById('signupDone');
+      done.querySelector('.auth-success__icon').innerHTML = icon('check');
+      document.getElementById('signupDoneEmail').textContent = account.email;
+      if (account.confirmarCorreo) {
+        done.querySelector('.auth-success__text').innerHTML = `Te enviamos un correo a <strong>${SF.esc(account.email)}</strong>. Abre el enlace para confirmar tu cuenta y luego inicia sesión.`;
+      }
+      document.getElementById('signupDoneLogin').href = `iniciar-sesion.html?correo=${encodeURIComponent(account.email)}`;
+      done.hidden = false;
+      UI.toast('Cuenta creada con éxito');
+      document.getElementById('signupDoneTitle').focus();
     });
   }
 
@@ -108,19 +137,45 @@
     };
     setHeader('mail', '¿Olvidaste tu contraseña?', 'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.');
 
-    recover.addEventListener('submit', (event) => {
+    const mostrarFormularioNuevo = (texto) => {
+      setHeader('lock', 'Crea una nueva contraseña', texto);
+      recover.hidden = true;
+      reset.hidden = false;
+      reset.password.focus();
+    };
+
+    // Supabase: se llegó con el enlace del correo → se pide la nueva contraseña
+    Cuentas.enlaceDeRecuperacion()
+      .then((desdeEnlace) => { if (desdeEnlace) mostrarFormularioNuevo('Escribe la contraseña que usarás de ahora en adelante.'); })
+      .catch((error) => UI.formError(recover, Cuentas.mensaje(error)));
+
+    recover.addEventListener('submit', async (event) => {
       event.preventDefault();
       UI.clearErrors(recover);
       const email = recover.email.value.trim();
 
       if (!UI.validEmail(email)) { UI.setFieldError(recover.email, 'Escribe un correo electrónico válido.'); return; }
-      if (!SF.account(email)) { UI.setFieldError(recover.email, 'No encontramos una cuenta con ese correo.'); return; }
 
+      if (Cuentas.MODO === 'supabase') {
+        const button = recover.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          await Cuentas.enviarRecuperacion(email);
+        } catch (error) {
+          button.disabled = false;
+          UI.formError(recover, Cuentas.mensaje(error));
+          return;
+        }
+        // Mismo mensaje exista o no la cuenta, para no revelar qué correos están registrados
+        setHeader('mail', 'Revisa tu correo', `Si ${email} tiene una cuenta, te llegará un enlace para crear una nueva contraseña.`);
+        recover.hidden = true;
+        return;
+      }
+
+      // Modo local (sin Supabase): no hay correo, se cambia aquí mismo
+      if (!SF.account(email)) { UI.setFieldError(recover.email, 'No encontramos una cuenta con ese correo.'); return; }
       targetEmail = email;
-      setHeader('lock', 'Crea una nueva contraseña', `Cuenta: ${email}`);
-      recover.hidden = true;
-      reset.hidden = false;
-      reset.password.focus();
+      mostrarFormularioNuevo(`Cuenta: ${email}`);
     });
 
     reset.addEventListener('submit', async (event) => {
@@ -132,7 +187,13 @@
       if (reset.confirm.value !== reset.password.value) { UI.setFieldError(reset.confirm, 'Las contraseñas no coinciden.'); valid = false; }
       if (!valid) return;
 
-      await SF.setPassword(targetEmail, reset.password.value);
+      try {
+        if (Cuentas.MODO === 'supabase') await Cuentas.restablecerPassword(reset.password.value);
+        else await SF.setPassword(targetEmail, reset.password.value);
+      } catch (error) {
+        UI.formError(reset, Cuentas.mensaje(error));
+        return;
+      }
       setHeader('check', '¡Contraseña actualizada!', 'Ya puedes iniciar sesión con tu nueva contraseña.');
       document.getElementById('recoverFooter').hidden = true;
       reset.hidden = true;
@@ -141,74 +202,11 @@
     });
   }
 
-  /* ---------- Google / Microsoft (simulado) ---------- */
-  function setupSocial() {
-    const dialog = document.createElement('dialog');
-    dialog.className = 'modal';
-    dialog.setAttribute('aria-labelledby', 'socialTitle');
-    dialog.innerHTML = `
-      <form class="modal__form" id="socialForm" novalidate>
-        <header class="modal__header">
-          <h2 id="socialTitle"></h2>
-          <button type="button" class="modal__close" data-close aria-label="Cerrar">${icon('close')}</button>
-        </header>
-        <p class="modal__text">Simulación: esta maqueta no se conecta con el proveedor. Indica el correo con el que quieres entrar.</p>
-        <div class="field">
-          <label for="socialEmail">Correo electrónico</label>
-          <input type="email" id="socialEmail" name="email" autocomplete="email" required>
-        </div>
-        <div class="field">
-          <label for="socialName">Nombre (solo si es tu primera vez)</label>
-          <input type="text" id="socialName" name="name" autocomplete="name">
-        </div>
-        <p class="form-error" role="alert" hidden></p>
-        <footer class="modal__footer">
-          <button type="button" class="btn btn--ghost btn--sm" data-close>Cancelar</button>
-          <button type="submit" class="btn btn--primary btn--sm">Continuar</button>
-        </footer>
-      </form>`;
-    document.body.appendChild(dialog);
-    UI.enhanceDialog(dialog);
-
-    const form = dialog.querySelector('form');
-    let provider = 'google';
-
-    document.querySelectorAll('[data-provider]').forEach((button) => {
-      button.addEventListener('click', () => {
-        provider = button.dataset.provider;
-        form.reset();
-        UI.clearErrors(form);
-        dialog.querySelector('#socialTitle').textContent = `Continuar con ${PROVIDERS[provider]}`;
-        dialog.showModal();
-      });
-    });
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      UI.clearErrors(form);
-      const email = form.email.value.trim();
-
-      if (!UI.validEmail(email)) { UI.setFieldError(form.email, 'Escribe un correo electrónico válido.'); return; }
-
-      if (!SF.account(email)) {
-        const name = form.elements.name.value.trim() || email.split('@')[0];
-        await SF.register({ fullName: name, email, password: '', provider });
-      } else {
-        SF.login(email);
-      }
-      window.location.href = DASHBOARD;
-    });
-  }
-
   /* ---------- Mockup decorativo (lado izquierdo) ---------- */
   function renderVisual() {
     const visual = document.getElementById('authVisual');
     if (!visual) return;
 
-    visual.innerHTML = `
-      <span class="float-icon float-icon--a">${icon('check')}</span>
-      <span class="float-icon float-icon--b">${icon('clock')}</span>
-      <span class="float-icon float-icon--c">${icon('coffee')}</span>
-      ${window.SFMockup ? window.SFMockup.html() : ''}`;
+    visual.innerHTML = window.SFMockup ? window.SFMockup.html() : '';
   }
 })();

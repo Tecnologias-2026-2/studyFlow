@@ -103,7 +103,7 @@
             <button type="button" class="icon-button icon-button--sm" data-delete aria-label="Eliminar «${esc(subject.name)}»">${icon('trash')}</button>
           </div>
         </div>
-        <h3 class="subject-card__name">${esc(subject.name)}</h3>
+        <h2 class="subject-card__name">${esc(subject.name)}</h2>
         <p class="subject-card__teacher">${subject.teacher ? esc(subject.teacher) : 'Sin profesor asignado'}</p>
         <div class="subject-card__meta">
           <span class="subject-card__count">${icon('check')}${count}</span>

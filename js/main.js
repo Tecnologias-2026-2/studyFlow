@@ -5,7 +5,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   setupMobileMenu();
   setupSmoothAnchorScroll();
-  setupActionButtons();
   setupTestimonials();
   redirectIfLoggedIn();
 });
@@ -65,30 +64,8 @@ function setupSmoothAnchorScroll() {
 }
 
 /**
- * Feedback visual sencillo para los botones de acción
- * (esta maqueta no incluye backend ni autenticación real).
- */
-function setupActionButtons() {
-  document.querySelectorAll('[data-action]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const action = button.getAttribute('data-action');
-
-      if (action === 'signup' || action === 'login') {
-        const hero = document.getElementById('inicio');
-        if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      if (action === 'demo') {
-        const features = document.getElementById('funciones');
-        if (features) features.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-}
-
-/**
- * Carrusel de testimonios: los puntos cambian de testimonio y
- * avanza solo cada 7 s (se pausa al pasar el mouse o con el foco dentro).
+ * Carrusel de testimonios: cambia solo cuando la persona elige un punto
+ * (no avanza ni se anima por sí mismo).
  */
 function setupTestimonials() {
   const card = document.getElementById('testimonialCard');
@@ -98,27 +75,22 @@ function setupTestimonials() {
   if (slides.length < 2) return;
 
   let current = 0;
-  let timer = null;
 
-  const show = (index) => {
+  const show = (index, animar) => {
     current = (index + slides.length) % slides.length;
-    slides.forEach((slide, i) => { slide.hidden = i !== current; });
+    slides.forEach((slide, i) => {
+      slide.hidden = i !== current;
+      slide.classList.toggle('is-entering', Boolean(animar) && i === current);
+    });
     dots.forEach((dot, i) => {
       if (i === current) dot.setAttribute('aria-current', 'true');
       else dot.removeAttribute('aria-current');
     });
   };
 
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const start = () => { if (!reduceMotion) { stop(); timer = setInterval(() => show(current + 1), 7000); } };
-  const stop = () => { if (timer) clearInterval(timer); timer = null; };
+  // La transición solo ocurre como respuesta a un clic del usuario
+  dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.goto), true)));
 
-  dots.forEach((dot) => dot.addEventListener('click', () => { show(Number(dot.dataset.goto)); start(); }));
-  card.addEventListener('mouseenter', stop);
-  card.addEventListener('mouseleave', start);
-  card.addEventListener('focusin', stop);
-  card.addEventListener('focusout', start);
-
-  show(0);
-  start();
+  show(0, false);
 }
+

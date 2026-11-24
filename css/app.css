@@ -1,3 +1,8 @@
+/* La app solo se muestra cuando hay una sesión iniciada (app.js agrega la clase) */
+body.app:not(.sf-autenticado) .app-shell {
+  visibility: hidden;
+}
+
 /* =========================================================
    StudyFlow — Estructura de la aplicación (páginas internas)
    Sidebar, barra superior y componentes compartidos.

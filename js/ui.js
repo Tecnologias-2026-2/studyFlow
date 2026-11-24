@@ -18,12 +18,25 @@ window.SFUI = (() => {
     teal: '41, 214, 221'
   };
 
+  // Versión clara de cada color para TEXTO sobre fondo oscuro (contraste mínimo 4.5:1, WCAG AA)
+  const TEXT = {
+    red: '252, 165, 165',
+    blue: '147, 197, 253',
+    amber: '252, 211, 77',
+    purple: '216, 180, 254',
+    green: '134, 239, 172',
+    sky: '125, 211, 252',
+    pink: '249, 168, 212',
+    teal: '41, 214, 221'
+  };
+
   const rgb = (color) => PALETTE[color] || PALETTE.teal;
 
   /** Aplica --c-rgb a todos los elementos con data-color dentro de root. */
   function applyColors(root = document) {
     root.querySelectorAll('[data-color]').forEach((el) => {
       el.style.setProperty('--c-rgb', rgb(el.dataset.color));
+      el.style.setProperty('--c-text-rgb', TEXT[el.dataset.color] || TEXT.teal);
     });
   }
 
@@ -55,7 +68,7 @@ window.SFUI = (() => {
     return dialog;
   }
 
-  function confirmDialog({ title, text, confirmLabel = 'Eliminar' }) {
+  function confirmDialog({ title, text, confirmLabel = 'Eliminar', tone = 'danger' }) {
     return new Promise((resolve) => {
       const dialog = document.createElement('dialog');
       dialog.className = 'modal modal--small';
@@ -66,7 +79,7 @@ window.SFUI = (() => {
           <p class="modal__text"></p>
           <footer class="modal__footer">
             <button type="button" class="btn btn--ghost btn--sm" data-close>Cancelar</button>
-            <button type="button" class="btn btn--danger btn--sm" data-confirm></button>
+            <button type="button" class="btn btn--${tone === 'primary' ? 'primary' : 'danger'} btn--sm" data-confirm></button>
           </footer>
         </div>`;
       dialog.querySelector('h2').textContent = title;

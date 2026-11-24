@@ -137,52 +137,29 @@
   color: var(--color-primary);
 }
 
-.auth-divider {
+.auth-card__footer a:hover,
+.auth-check a:hover {
+  text-decoration: underline;
+}
+
+.auth-check {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 20px 0 16px;
-  font-size: 0.72rem;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.78rem;
   color: var(--color-text-secondary);
 }
 
-.auth-divider::before,
-.auth-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.auth-social {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.btn-social {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text);
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: background-color var(--transition-fast);
-}
-
-.btn-social:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.btn-social svg {
-  width: 18px;
-  height: 18px;
+.auth-check input {
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--color-primary);
   flex-shrink: 0;
+}
+
+.auth-check a {
+  color: var(--color-primary);
 }
 
 .auth-card__footer {
@@ -197,39 +174,71 @@
   font-weight: 600;
 }
 
-/* ---------- Visual (mockup de la app) ---------- */
+/* ---------- Visual (mockup de la app): imagen de referencia, no seleccionable;
+   solo responde al mouse con un brillo suave (mockup.css) ---------- */
 .auth__visual {
   position: relative;
   display: flex;
   justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  cursor: default;
 }
 
-.float-icon {
-  position: absolute;
+/* ---------- Cuenta creada con éxito ---------- */
+.auth-success {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.auth-success[hidden] {
+  display: none;
+}
+
+.auth-success__icon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 1px solid rgba(129, 140, 248, 0.4);
-  background: rgba(20, 30, 70, 0.85);
-  color: #a5b4fc;
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
 }
 
-.float-icon svg {
-  width: 16px;
-  height: 16px;
+.auth-success__icon svg {
+  width: 28px;
+  height: 28px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.float-icon--a { top: -14px; right: 6%; }
-.float-icon--b { bottom: 30px; left: -18px; }
-.float-icon--c { bottom: -30px; left: 30%; }
+.auth-success__title {
+  font-size: 1.35rem;
+  color: #86efac;
+}
 
+.auth-success__title:focus {
+  outline: none;
+}
+
+.auth-success__text {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.auth-success__text strong {
+  color: var(--color-text);
+  word-break: break-all;
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
@@ -261,8 +270,12 @@
   .auth-page .navbar__name {
     display: none;
   }
+}
 
-  .auth-social {
-    grid-template-columns: 1fr;
+/* Pantallas muy angostas: solo el botón principal en la barra (el otro está en la tarjeta) */
+@media (max-width: 380px) {
+  .auth-page .navbar__actions .btn--ghost {
+    display: none;
   }
+
 }

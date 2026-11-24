@@ -161,3 +161,97 @@
     grid-template-columns: minmax(0, 540px);
   }
 }
+
+/* ---------- Tareas y subtareas en el panel del día ---------- */
+.day-panel__task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.day-panel__toggle,
+.day-panel__toggle-space {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-left: -6px;
+}
+
+.day-panel__toggle {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.day-panel__toggle:hover {
+  background: rgba(41, 214, 221, 0.12);
+}
+
+.day-panel__toggle svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.day-panel__toggle[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.day-panel__check,
+.day-panel__sub input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.day-panel__task.is-done .day-panel__item-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.day-panel__subs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 26px;
+  padding: 2px 0 4px 14px;
+  border-left: 2px solid rgba(41, 214, 221, 0.35);
+}
+
+.day-panel__subs[hidden] {
+  display: none;
+}
+
+.day-panel__sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+
+.day-panel__sub label {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.day-panel__sub.is-done label {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+}
+
+.day-panel__item-title {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-panel__toggle svg { transition: none; }
+}

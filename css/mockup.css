@@ -8,7 +8,7 @@
   --mock-bg: #0b1129;
   --mock-card: rgba(255, 255, 255, 0.035);
   --mock-line: rgba(255, 255, 255, 0.08);
-  --mock-muted: #7c87a3;
+  --mock-muted: #97a2bd;
   width: 100%;
   max-width: 490px;
   border-radius: 12px;
@@ -281,7 +281,7 @@
 }
 
 .app-mock__tasks li.is-done {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .app-mock__tasks li.is-done span {
@@ -354,4 +354,77 @@
   .app-mock__row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------- Brillo al pasar el mouse (no seleccionable, sin clics) ----------
+   Un foco de luz suave sigue al puntero por detrás del contenido y la
+   tarjeta bajo el mouse resalta su fondo con su propio color. */
+.app-mock {
+  position: relative;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.app-mock *,
+.app-mock *::before,
+.app-mock *::after {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.app-mock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 40%), rgba(41, 214, 221, 0.1), rgba(111, 124, 246, 0.05) 45%, transparent 70%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+.app-mock__body,
+.app-mock__bar,
+.app-mock__status { position: relative; }
+.app-mock__bar,
+.app-mock__status { background-color: transparent; }
+.app-mock__bar { background-image: linear-gradient(rgba(14, 21, 49, 0.92), rgba(14, 21, 49, 0.92)); }
+
+.app-mock__card,
+.app-mock__tasks li,
+.app-mock__day,
+.app-mock__side li {
+  transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, color 200ms ease;
+}
+
+/* Solo con mouse real (en celular no quedan resaltados pegados) */
+  html.sf-mouse .app-mock:hover::before { opacity: 1; }
+  html.sf-mouse .app-mock:hover { border-color: rgba(41, 214, 221, 0.22); }
+  html.sf-mouse .app-mock__card:hover {
+    border-color: rgba(41, 214, 221, 0.3);
+    background-color: rgba(41, 214, 221, 0.05);
+    box-shadow: 0 0 24px rgba(41, 214, 221, 0.08);
+  }
+  html.sf-mouse .app-mock__card--timer:hover {
+    border-color: rgba(96, 165, 250, 0.7);
+    box-shadow: 0 0 28px rgba(59, 130, 246, 0.22);
+  }
+  html.sf-mouse .app-mock__tasks li:hover {
+    background-color: rgba(var(--t), 0.08);
+    box-shadow: inset 0 0 0 1px rgba(var(--t), 0.22);
+  }
+  html.sf-mouse .app-mock__day:hover i { background: rgba(41, 214, 221, 0.12); }
+  html.sf-mouse .app-mock__side li:not(.is-active):hover {
+    color: #c9d3e8;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .app-mock::before,
+  .app-mock__card,
+  .app-mock__tasks li,
+  .app-mock__day,
+  .app-mock__side li,
+  .feature-card,
+  .feature-card::before { transition: none; }
 }

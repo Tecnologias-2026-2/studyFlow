@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "texto": "Divide las tareas grandes en subtareas de 25 minutos: empezar es más fácil cuando el primer paso es pequeño."
+  },
+  {
+    "id": 2,
+    "texto": "Repasa lo visto en clase el mismo día; diez minutos hoy ahorran una hora antes del parcial."
+  },
+  {
+    "id": 3,
+    "texto": "Deja el celular en otra habitación durante cada Pomodoro."
+  },
+  {
+    "id": 4,
+    "texto": "Explica el tema en voz alta como si se lo enseñaras a alguien: así encuentras lo que aún no entiendes."
+  },
+  {
+    "id": 5,
+    "texto": "Pon primero las tareas de prioridad alta con fecha cercana."
+  },
+  {
+    "id": 6,
+    "texto": "Haz pausas de verdad: levántate, toma agua y estira la espalda."
+  },
+  {
+    "id": 7,
+    "texto": "Resuelve ejercicios antes de releer apuntes; practicar recuerda mejor que leer."
+  },
+  {
+    "id": 8,
+    "texto": "Revisa el calendario cada domingo y planea la semana."
+  },
+  {
+    "id": 9,
+    "texto": "Alterna materias en una misma sesión para mantener la concentración."
+  },
+  {
+    "id": 10,
+    "texto": "Duerme bien antes de un examen: la memoria se consolida mientras duermes."
+  }
+]

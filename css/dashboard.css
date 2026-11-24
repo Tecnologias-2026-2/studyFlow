@@ -241,7 +241,7 @@
 .subject-tile__value {
   font-size: 0.62rem;
   font-weight: 600;
-  color: rgb(var(--c-rgb));
+  color: rgb(var(--c-text-rgb, var(--c-rgb)));
 }
 
 .subject-tile--create {
@@ -383,4 +383,35 @@
   .pill-outline {
     font-size: 0.95rem;
   }
+}
+
+/* Consejo del día (desde /api/consejos/hoy) */
+.tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 207, 92, 0.35);
+  border-radius: var(--radius-md);
+  background: rgba(255, 207, 92, 0.08);
+}
+
+.tip-card__icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.tip-card__title {
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffcf5c;
+}
+
+.tip-card__text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text);
 }

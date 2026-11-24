@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/app.css">
   <link rel="stylesheet" href="../css/tareas.css">
+  <script src="../js/accesibilidad.js"></script>
+  <script src="../js/cookies.js" defer></script>
 </head>
 <body class="app" data-page="tareas">
 
@@ -38,7 +40,7 @@
         <div class="tasks-layout">
           <div class="tasks-main">
             <div class="toolbar">
-              <form class="searchbar" role="search" id="taskSearchForm">
+              <form class="searchbar" role="search" aria-label="Buscar tareas" id="taskSearchForm">
                 <label class="visually-hidden" for="taskSearch">Buscar por nombre o materia</label>
                 <span class="searchbar__icon" id="searchIcon"></span>
                 <input type="search" id="taskSearch" placeholder="Buscar por nombre o materia..." autocomplete="off">
@@ -72,11 +74,11 @@
             </div>
 
             <div class="tabs" role="tablist" aria-label="Estado de las tareas">
-              <button type="button" role="tab" id="tabPending" aria-selected="true" aria-controls="taskCards">Pendientes <span class="tabs__count" id="countPending">0</span></button>
-              <button type="button" role="tab" id="tabDone" aria-selected="false" aria-controls="taskCards" tabindex="-1">Completadas <span class="tabs__count" id="countDone">0</span></button>
+              <button type="button" role="tab" id="tabPending" aria-selected="true" aria-controls="taskPanel">Pendientes <span class="tabs__count" id="countPending">0</span></button>
+              <button type="button" role="tab" id="tabDone" aria-selected="false" aria-controls="taskPanel" tabindex="-1">Completadas <span class="tabs__count" id="countDone">0</span></button>
             </div>
 
-            <ul class="task-cards" id="taskCards" role="tabpanel" aria-live="polite"></ul>
+            <div id="taskPanel" role="tabpanel" aria-labelledby="tabPending"><ul class="task-cards" id="taskCards" aria-live="polite"></ul></div>
           </div>
 
           <aside class="tasks-side" aria-label="Resumen lateral">
@@ -112,8 +114,8 @@
 
       <div class="field-row">
         <div class="field">
-          <label for="taskSubject">Materia</label>
-          <select id="taskSubject" name="subjectId"></select>
+          <label for="taskSubject">Materia *</label>
+          <select id="taskSubject" name="subjectId" required aria-required="true"></select>
         </div>
         <fieldset class="field">
           <legend>Prioridad</legend>
@@ -157,6 +159,9 @@
 
   <script src="../js/icons.js"></script>
   <script src="../js/store.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="../js/cuentas.js"></script>
+  <script src="../js/sync.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/tareas.js"></script>
