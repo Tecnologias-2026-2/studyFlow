@@ -17,6 +17,7 @@ el navegador habla directamente con la librería oficial `@supabase/supabase-js`
 | --- | --- | --- |
 | Páginas, estilos, scripts | Este repositorio | `server.js` (archivos estáticos) |
 | Calendario académico y consejos | `data/eventos.json`, `data/consejos.json` | `server.js` → `GET /api/...` |
+| Número de estudiantes registrados | Función `contar_estudiantes()` en Supabase | `server.js` → `GET /api/estadisticas` |
 | Correo y contraseña | Supabase Auth | `js/cuentas.js` |
 | Perfil | Tabla `perfiles` | `js/cuentas.js` |
 | Materias, tareas, subtareas, Pomodoro | Tablas `materias`, `tareas`, `subtareas`, `sesiones_pomodoro`, `ajustes_pomodoro` | `js/store.js` (copia local) + `js/sync.js` (sincronización) |
@@ -67,6 +68,7 @@ Hace falta el servidor (no basta con abrir el HTML): sirve `/api/...` y
 | `GET /api/eventos?mes=AAAA-MM&tipo=...` | Eventos del calendario académico | 400 si `mes` o `tipo` no son válidos |
 | `GET /api/consejos` | Todos los consejos | 500 si el JSON no se puede leer |
 | `GET /api/consejos/hoy` | Consejo del día (hora de Colombia) | 500 si el JSON no se puede leer |
+| `GET /api/estadisticas` | `{"estudiantes": N}`: cuentas registradas de verdad (función `contar_estudiantes` en Supabase, caché de 60 s) | 503 si Supabase no responde (la landing oculta la línea) |
 | Otros métodos en esas rutas | — | 405 (`Allow: GET, HEAD`) |
 | Cualquier otra `/api/...` | — | 404 JSON |
 

@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   setupMobileMenu();
   setupSmoothAnchorScroll();
-  setupTestimonials();
+  mostrarEstudiantesRegistrados();
   redirectIfLoggedIn();
 });
 
@@ -64,33 +64,19 @@ function setupSmoothAnchorScroll() {
 }
 
 /**
- * Carrusel de testimonios: cambia solo cuando la persona elige un punto
- * (no avanza ni se anima por sí mismo).
+ * Número real de estudiantes registrados, pedido al backend
+ * (GET /api/estadisticas → función contar_estudiantes en Supabase).
+ * Si no responde, la línea se queda oculta: nunca se muestra un número inventado.
  */
-function setupTestimonials() {
-  const card = document.getElementById('testimonialCard');
-  if (!card) return;
-  const slides = Array.from(card.querySelectorAll('[data-slide]'));
-  const dots = Array.from(card.querySelectorAll('[data-goto]'));
-  if (slides.length < 2) return;
-
-  let current = 0;
-
-  const show = (index, animar) => {
-    current = (index + slides.length) % slides.length;
-    slides.forEach((slide, i) => {
-      slide.hidden = i !== current;
-      slide.classList.toggle('is-entering', Boolean(animar) && i === current);
-    });
-    dots.forEach((dot, i) => {
-      if (i === current) dot.setAttribute('aria-current', 'true');
-      else dot.removeAttribute('aria-current');
-    });
-  };
-
-  // La transición solo ocurre como respuesta a un clic del usuario
-  dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.goto), true)));
-
-  show(0, false);
+function mostrarEstudiantesRegistrados() {
+  const linea = document.getElementById('estudiantesRegistrados');
+  if (!linea || !window.SFApi) return;
+  window.SFApi.get('estadisticas').then(({ estudiantes }) => {
+    if (!Number.isInteger(estudiantes) || estudiantes < 1) return;
+    document.getElementById('estudiantesNumero').textContent = estudiantes.toLocaleString('es-CO');
+    document.getElementById('estudiantesEtiqueta').textContent =
+      estudiantes === 1 ? 'estudiante registrado' : 'estudiantes registrados';
+    linea.hidden = false;
+  }).catch(() => { /* sin dato real, no se muestra nada */ });
 }
 

@@ -8,6 +8,7 @@
 //     GET /api/eventos?mes=2026-11&tipo=...   filtrado por mes y/o tipo
 //     GET /api/consejos                       consejos de estudio
 //     GET /api/consejos/hoy                   el consejo del día (hora de Colombia)
+//     GET /api/estadisticas                   número real de estudiantes registrados (Supabase)
 //
 // Los datos de cada estudiante (cuenta, perfil, materias, tareas, subtareas
 // y Pomodoro) NO pasan por este servidor: el navegador habla directo con
@@ -27,6 +28,23 @@ const TIPOS_EVENTO = ['academico', 'entregas', 'examenes', 'festivo'];
 const MES_VALIDO = /^\d{4}-(0[1-9]|1[0-2])$/;
 const ZONA_COLOMBIA_MS = -5 * 3600 * 1000; // UTC-5, sin horario de verano
 const INICIO = Date.now();
+
+// Conexión de solo lectura a Supabase para el conteo público de estudiantes.
+// Usa la misma URL y clave PUBLICABLE que el navegador (js/supabase-config.js);
+// la base solo deja contar (función contar_estudiantes), nada más.
+async function leerConfigSupabase() {
+  try {
+    const texto = await readFile(path.join(RAIZ, 'js', 'supabase-config.js'), 'utf8');
+    const url = texto.match(/url:\s*'([^']+)'/)?.[1];
+    const key = texto.match(/key:\s*'([^']+)'/)?.[1];
+    return url && key ? { url, key } : null;
+  } catch (error) {
+    return null;
+  }
+}
+const SUPABASE = await leerConfigSupabase();
+const CACHE_ESTADISTICAS_MS = 60 * 1000;
+let cacheEstadisticas = null; // { datos, hasta }
 
 const app = express();
 app.disable('x-powered-by');
@@ -102,6 +120,32 @@ app.get('/api/consejos/hoy', async (req, res, next) => {
   }
 });
 
+app.get('/api/estadisticas', async (req, res, next) => {
+  try {
+    if (!SUPABASE) return res.status(503).json({ error: 'Estadísticas no disponibles: Supabase no está configurado' });
+    if (cacheEstadisticas && cacheEstadisticas.hasta > Date.now()) return res.json(cacheEstadisticas.datos);
+
+    const respuesta = await fetch(`${SUPABASE.url}/rest/v1/rpc/contar_estudiantes`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE.key, Authorization: `Bearer ${SUPABASE.key}`, 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!respuesta.ok) throw new Error(`Supabase respondió ${respuesta.status}`);
+    const estudiantes = Number(await respuesta.json());
+    if (!Number.isInteger(estudiantes) || estudiantes < 0) throw new Error('Conteo inválido');
+
+    const datos = { estudiantes, actualizado: new Date().toISOString() };
+    cacheEstadisticas = { datos, hasta: Date.now() + CACHE_ESTADISTICAS_MS };
+    res.json(datos);
+  } catch (error) {
+    // Si Supabase no responde, se devuelve el último dato conocido (si hay)
+    if (cacheEstadisticas) return res.json(cacheEstadisticas.datos);
+    console.error('No se pudo contar estudiantes:', error.message);
+    res.status(503).json({ error: 'Estadísticas no disponibles en este momento' });
+  }
+});
+
 app.get('/api/:coleccion', async (req, res, next) => {
   const { coleccion } = req.params;
   if (!COLECCIONES.includes(coleccion)) {
@@ -115,7 +159,7 @@ app.get('/api/:coleccion', async (req, res, next) => {
 });
 
 // La API es de solo lectura: otros métodos sobre rutas existentes → 405
-const RUTAS_API = /^\/api\/(salud|eventos|consejos|consejos\/hoy)\/?$/;
+const RUTAS_API = /^\/api\/(salud|eventos|consejos|consejos\/hoy|estadisticas)\/?$/;
 app.use('/api', (req, res) => {
   if (RUTAS_API.test(req.originalUrl.split('?')[0])) {
     res.set('Allow', 'GET, HEAD');
