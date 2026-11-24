@@ -1,212 +1,85 @@
 # StudyFlow
 
-Plataforma de productividad académica para universitarios: Pomodoro, gestión
-de materias y tareas, estadísticas, logros y metas semanales.
+Plataforma de productividad académica para universitarios: materias, tareas con
+subtareas, calendario, temporizador Pomodoro y perfil.
 
-Este proyecto empezó como un **prototipo de diseño y maquetación** basado en el
-diseño de Figma de StudyFlow. Ahora tiene un **backend en Node.js (Express)** que
-se publica en Render y entrega datos por API. Todavía no usa base de datos: las
-cuentas, materias y tareas siguen guardándose en el navegador.
+- **Producción:** https://studyflow-m1sq.onrender.com (Render, plan gratuito)
+- **Diseño:** https://www.figma.com/design/s1VlpQj5Kp7ybpq2Xs0jR0/Studyflow
 
-## Tecnologías
+## Arquitectura en una línea
 
-- HTML5 semántico
-- CSS3 (variables, Flexbox, Grid, media queries)
-- JavaScript vanilla (sin frameworks ni librerías)
+HTML + CSS + JavaScript sin frameworks, servido por un backend **Node.js + Express 5**
+(`server.js`) que además entrega una **API JSON pública** (`/api/...`). Las cuentas y
+los datos de cada estudiante viven en **Supabase** (Auth + PostgreSQL con RLS), al que
+el navegador habla directamente con la librería oficial `@supabase/supabase-js`.
 
-## Estructura del proyecto
-
-```
-StudyFlow/
-│
-├── index.html                  Punto de entrada (redirige a html/inicio.html)
-│
-├── html/
-│   ├── inicio.html              Landing page (hero, características, testimonio)
-│   ├── iniciar-sesion.html      Iniciar sesión con correo y contraseña
-│   ├── crear-cuenta.html        Crear cuenta (confirma «Cuenta creada con éxito»)
-│   ├── recuperar-contrasena.html  Olvidé mi contraseña
-│   ├── terminos.html            Términos y condiciones
-│   ├── privacidad.html          Política de privacidad
-│   ├── dashboard.html           Panel principal (Inicio)
-│   ├── tareas.html              Mis Tareas: crear, editar, subtareas, filtros
-│   ├── materias.html            Mis Materias: crear, editar, profesor, buscador, progreso
-│   ├── pomodoro.html            Temporizador Pomodoro y resumen del día
-│   ├── calendario.html          Calendario con detalle del día
-│   └── perfil.html              Mi perfil y seguridad (contraseña)
-│
-├── css/
-│   ├── styles.css               General: variables, reset, accesibilidad, botones, navbar, footer
-│   ├── inicio.css               Landing: hero, mockup, características, testimonio
-│   ├── components.css           Compartido: stats, formularios, modal, pestañas, chips, avisos
-│   ├── auth.css                 Iniciar sesión / crear cuenta / recuperar contraseña
-│   ├── mockup.css               Vista previa de la app (landing y acceso)
-│   ├── legal.css                Términos y privacidad
-│   ├── app.css                  App: sidebar, barra superior, menús desplegables
-│   ├── calendar.css              Componente calendario (reutilizado en dashboard y Calendario)
-│   ├── dashboard.css            Dashboard: sesión, progreso, materias, tareas
-│   ├── tareas.css               Mis Tareas: tarjetas, filtros, columna lateral
-│   ├── materias.css             Materias: tarjetas y selector de ícono/color
-│   ├── pomodoro.css             Pomodoro: temporizador, configuración, resumen
-│   ├── calendario.css           Página Calendario: layout y panel del día
-│   └── perfil.css               Mi perfil: tarjeta y formularios
-│
-├── js/
-│   ├── icons.js                 Iconos SVG reutilizables
-│   ├── store.js                 Capa de datos: cuentas, sesión, materias, tareas y Pomodoro (localStorage)
-│   ├── ui.js                    Utilidades: avisos, diálogos, validación de formularios
-│   ├── main.js                  Landing: menú móvil, scroll suave, carrusel de testimonios
-│   ├── mockup.js                Vista previa de la app (landing y acceso)
-│   ├── auth.js                  Crear cuenta, iniciar sesión y recuperar contraseña
-│   ├── app.js                   App: sidebar, buscador, notificaciones, cerrar sesión
-│   ├── dashboard.js             Panel principal
-│   ├── tareas.js                Mis Tareas
-│   ├── materias.js              Materias
-│   ├── pomodoro.js              Temporizador Pomodoro
-│   ├── calendar.js              Componente calendario
-│   ├── calendario.js            Página Calendario (panel del día)
-│   └── perfil.js                Mi perfil y seguridad
-│
-├── assets/
-│   ├── images/
-│   ├── icons/                   favicon.svg
-│   └── logo/                    studyflow-mark.svg
-│
-└── README.md
-```
-
-## Cómo ejecutarlo localmente
-
-1. Abre la carpeta `StudyFlow/` en Visual Studio Code.
-2. Instala la extensión **Live Server**.
-3. Clic derecho sobre `index.html` → **Open with Live Server**.
-
-`index.html` redirige a `html/inicio.html`. Todas las rutas son relativas, por lo
-que también funciona en GitHub Pages u otro hosting estático (incluso si el sitio
-se publica en una subcarpeta).
-
-## Cómo funciona (todo en el navegador, sin backend)
-
-Es un prototipo: no hay servidor ni base de datos. Todo se guarda en `localStorage`,
-por cuenta (identificada por su correo). Los datos de una cuenta nunca se mezclan con
-los de otra, y **una cuenta nueva siempre empieza en cero**: sin materias, sin tareas,
-sin sesiones de Pomodoro.
-
-- **Crear cuenta** (`crear-cuenta.html`): nombre, correo y contraseña (mínimo 8
-  caracteres), con validación en pantalla. Los botones de **Google** y **Microsoft**
-  simulan el acceso: piden un correo (y opcionalmente un nombre) y crean o inician la
-  cuenta con ese correo — no se conectan a un proveedor real.
-- **Iniciar sesión** (`iniciar-sesion.html`): valida contra la cuenta guardada.
-  **¿Olvidaste tu contraseña?** lleva a `recuperar-contrasena.html`, donde se verifica
-  el correo y se define una nueva contraseña directamente (aquí no hay envío real de
-  correos: es la simulación equivalente dentro de un prototipo sin backend).
-- Visitar cualquier página interna (`dashboard.html`, `tareas.html`, etc.) sin sesión
-  iniciada redirige automáticamente a `iniciar-sesion.html`.
-- **Cerrar sesión** está al final del menú lateral en todas las páginas internas.
-- **Ver Demo** en la landing (`dashboard.html?demo=1`) crea, solo si no hay ninguna
-  sesión activa, una cuenta de ejemplo con materias, tareas y racha ya cargadas —así
-  se ve StudyFlow "en uso" sin afectar cuentas reales.
-
-## Navegación entre páginas
-
-- Landing → **Iniciar Sesión** abre `iniciar-sesion.html`; **Comenzar Gratis** /
-  **Comienza Gratis** abren `crear-cuenta.html`; **Ver Demo** abre el panel con datos
-  de ejemplo.
-- El sidebar de las páginas internas conecta Inicio, Tareas, Calendario, Pomodoro,
-  Materias y Perfil entre sí, más **Cerrar sesión**.
-- El buscador de la barra superior busca en tareas y materias en tiempo real.
-- La campana muestra recordatorios (tareas vencidas, de hoy y de mañana).
-
-## Datos de ejemplo (solo en la cuenta Demo)
-
-La cuenta creada por **Ver Demo** usa la fecha de prototipo **5 de agosto de 2026**
-como referencia y materias/tareas de ejemplo, definidas en `js/store.js`
-(función `demoData`). Cualquier otra cuenta empieza completamente vacía.
-
-## Añadir una página nueva
-
-1. Copia una página existente similar (por ejemplo `materias.html`) como base en `html/`.
-2. Si necesita estilos propios, crea `css/<pagina>.css` y añádelo al `<head>`.
-3. Si necesita lógica propia, crea `js/<pagina>.js` (usa `SF.onReady(...)` para esperar
-   los datos) y añádelo antes de `</body>`.
-4. En `js/app.js`, agrega la entrada correspondiente al arreglo `NAV` para que el
-   enlace del sidebar apunte a la nueva página.
-
-## Prototipo de Figma
-
-`https://www.figma.com/design/s1VlpQj5Kp7ybpq2Xs0jR0/Studyflow`
-
-
-## Backend (Render)
-
-`server.js` sirve la página y una API JSON con los datos de la carpeta `data/`:
-
-| Ruta | Qué devuelve | Dónde se usa |
+| Qué | Dónde vive | Quién lo maneja |
 | --- | --- | --- |
-| `GET /api/salud` | Estado del servidor | Render (health check) |
-| `GET /api/eventos?mes=AAAA-MM` | Calendario académico: festivos, parciales, entregas | Calendario y Dashboard |
-| `GET /api/consejos` / `GET /api/consejos/hoy` | Consejos de estudio / el del día | Dashboard |
+| Páginas, estilos, scripts | Este repositorio | `server.js` (archivos estáticos) |
+| Calendario académico y consejos | `data/eventos.json`, `data/consejos.json` | `server.js` → `GET /api/...` |
+| Correo y contraseña | Supabase Auth | `js/cuentas.js` |
+| Perfil | Tabla `perfiles` | `js/cuentas.js` |
+| Materias, tareas, subtareas, Pomodoro | Tablas `materias`, `tareas`, `subtareas`, `sesiones_pomodoro`, `ajustes_pomodoro` | `js/store.js` (copia local) + `js/sync.js` (sincronización) |
 
-Para verlo en el navegador: clic derecho → **Inspeccionar** → pestaña **Network
-(Red)** → filtra por `api`. Cada petición también queda en **Render → Logs**
-(`GET /api/eventos?mes=2026-11 → 200 (2.5 ms)`).
+## Estructura
 
-Probar en el computador:
+```
+server.js                 Backend Express: API, librería de Supabase, archivos estáticos
+package.json              Dependencias: express, @supabase/supabase-js
+render.yaml               Configuración del servicio en Render
+data/                     JSON que sirve la API (no se puede descargar directamente)
+supabase/migrations/      Esquema de la base de datos (SQL)
+index.html                Redirige a html/inicio.html
+html/                     Una página por sección
+css/                      styles.css (base) + un archivo por sección
+js/
+  store.js                Estado de la app (SF): materias, tareas, Pomodoro, sesión
+  supabase-config.js      URL y clave pública (publishable) de Supabase
+  cuentas.js              Registro, login, perfil, contraseña (Supabase Auth)
+  sync.js                 Sincroniza store.js con las tablas de Supabase
+  api.js                  Cliente de la API propia (/api/eventos, /api/consejos)
+  app.js                  Menú lateral, barra superior, guardia de sesión
+  auth.js                 Formularios de crear cuenta, iniciar sesión, recuperar
+  dashboard.js, tareas.js, materias.js, calendar.js, calendario.js,
+  pomodoro.js, perfil.js  Lógica de cada página
+  ui.js, icons.js         Avisos, diálogos, validación, iconos
+  cookies.js              Aviso de cookies (30 días, nunca contraseñas)
+  accesibilidad.js        Panel de accesibilidad
+  main.js, mockup.js      Landing y vista previa decorativa
+```
+
+## Ejecutar en local
 
 ```bash
 npm install
-npm start        # http://localhost:3000
+npm start          # http://localhost:3000
 ```
 
-Publicar en Render: **New → Web Service** → este repositorio → Build `npm install`
-→ Start `npm start` (o usar `render.yaml`).
+Hace falta el servidor (no basta con abrir el HTML): sirve `/api/...` y
+`/vendor/supabase.js`. Con `js/supabase-config.js` vacío (`key: ''`) la app funciona en
+**modo local**: todo se guarda en `localStorage`, sin Supabase.
 
-## Accesibilidad
+## API propia (solo lectura)
 
-- Revisado con las reglas de Chrome Lighthouse/axe-core (WCAG 2.2 AA y buenas
-  prácticas): contraste de colores, nombres accesibles, orden de títulos,
-  tamaño mínimo de objetivos táctiles, landmarks únicos.
-- Botón flotante de accesibilidad (`js/accesibilidad.js`): perfiles (visión baja,
-  epilepsia, TDAH, dislexia), tamaño de texto, alto contraste, modo oscuro,
-  resaltar enlaces y títulos, fuente legible, pausar animaciones, guía de lectura
-  y cursor grande.
+| Método y ruta | Respuesta | Errores |
+| --- | --- | --- |
+| `GET /api/salud` | Estado del servidor | — |
+| `GET /api/eventos?mes=AAAA-MM&tipo=...` | Eventos del calendario académico | 400 si `mes` o `tipo` no son válidos |
+| `GET /api/consejos` | Todos los consejos | 500 si el JSON no se puede leer |
+| `GET /api/consejos/hoy` | Consejo del día (hora de Colombia) | 500 si el JSON no se puede leer |
+| Otros métodos en esas rutas | — | 405 (`Allow: GET, HEAD`) |
+| Cualquier otra `/api/...` | — | 404 JSON |
 
-## Cookies
+Verlo en el navegador: **Inspeccionar → Network (Red)**, filtro `api`. Las peticiones a
+Supabase aparecen con el dominio `*.supabase.co` (`/auth/v1/...`, `/rest/v1/...`). Cada
+llamada a `/api` queda también en **Render → Logs** (`GET /api/eventos?mes=2026-11 → 200 (1.1 ms)`).
 
-`js/cookies.js` muestra un aviso la primera vez. Si se aceptan, guarda nombre,
-correo, carrera y último acceso; **todas las cookies caducan a los 30 días**
-(también la que recuerda la decisión). Nunca se guardan contraseñas. Se pueden
-cambiar desde «Configurar cookies» (pie de página, páginas legales y Mi perfil).
+## Base de datos
 
-## Flujo de acceso
+Ver `supabase/migrations/`. Todas las tablas tienen RLS: cada persona solo lee y
+modifica sus filas (`usuario_id = auth.uid()`); sin sesión no se puede leer nada.
 
-1. **Crear cuenta**: se valida el formulario, se guarda la cuenta (la contraseña
-   se guarda cifrada con SHA-256 y sal) y se vuelve a leer para comprobar que
-   quedó guardada. Solo entonces aparece **«Cuenta creada con éxito»**.
-2. **Iniciar sesión**: el correo llega escrito; con la contraseña correcta se
-   entra al panel.
-3. Las páginas de la app (Materias, Inicio, Tareas, Calendario, Pomodoro y
-   Perfil) no se muestran sin sesión: redirigen a «Iniciar sesión».
+## Documentación técnica completa
 
-## Tareas, subtareas y calendario
-
-- Las tareas con subtareas tienen una **flecha** que las despliega o contrae.
-- El **Calendario** muestra en el panel de cada día las tareas y, con su flecha,
-  sus subtareas; marcarlas ahí se guarda en el mismo lugar que en Tareas.
-- La **Racha** (barra superior y tarjeta del panel) lleva a **Tareas**.
-
-> Limitación: las cuentas y tareas se guardan en el navegador (localStorage).
-> No hay base de datos todavía, así que no se comparten entre dispositivos.
-
-## Supabase (solo cuentas)
-
-- `supabase/migrations/20261124050000_perfiles.sql`: tabla `perfiles` (nombre,
-  apellido, universidad, carrera, semestre) con RLS: cada usuario solo ve y
-  edita lo suyo. El perfil se crea solo al registrarse.
-- El correo y la contraseña los guarda **Supabase Auth** (contraseña cifrada);
-  no hay ninguna columna de contraseña en nuestras tablas.
-- `js/supabase-config.js`: URL y clave publishable del proyecto. Con la clave
-  vacía, las cuentas siguen en el navegador (modo local).
-- `js/cuentas.js`: registro, inicio de sesión, cerrar sesión, perfil, cambio y
-  recuperación de contraseña, contra Supabase o en modo local.
-- Materias, tareas y Pomodoro siguen en el navegador.
+La auditoría técnica (arquitectura, endpoints, base de datos, Network, errores y
+flujogramas) está en el documento «StudyFlow — Auditoría técnica y documentación».

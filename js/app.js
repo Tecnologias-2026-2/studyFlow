@@ -29,8 +29,9 @@
     document.body.classList.add('sf-autenticado');
 
     // Con Supabase, la sesión del servidor también debe seguir abierta
+    // (si no se pudo comprobar por falta de conexión, se sigue con la copia local)
     window.SFCuentas.verificarSesion().then((valida) => {
-      if (valida) return;
+      if (valida !== false) return;
       window.SF.logout();
       window.location.replace('iniciar-sesion.html');
     });

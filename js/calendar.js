@@ -136,10 +136,13 @@
   function cargarAcademicos(mes) {
     if (!window.SFApi || mes in academicos) return;
     academicos[mes] = null;
-    window.SFApi.eventosDelMes(mes).then((lista) => {
+    window.SFApi.get(`eventos?mes=${encodeURIComponent(mes)}`).then((lista) => {
       academicos[mes] = lista;
       render();
       document.dispatchEvent(new CustomEvent('sf:eventos', { detail: { mes } }));
+    }).catch(() => {
+      // Sin servidor el calendario sigue con tareas; se reintenta al volver a ese mes
+      delete academicos[mes];
     });
   }
 

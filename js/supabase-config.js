@@ -1,12 +1,12 @@
 /* =========================================================
-   StudyFlow — Conexión con Supabase (solo cuentas de usuario)
+   StudyFlow — Conexión con Supabase (cuentas, perfil, materias, tareas y Pomodoro)
 
    url: dirección del proyecto de Supabase.
    key: clave "publishable" (sb_publishable_...) o "anon" del proyecto.
         Es pública por diseño: va en el navegador y no da acceso a las
         contraseñas. NUNCA pongas aquí la clave secreta (service_role).
 
-   Si "key" está vacía, las cuentas se guardan en el navegador como antes.
+   Si "key" está vacía, la app funciona en modo local (todo en el navegador).
    ========================================================= */
 
 window.SF_SUPABASE = {

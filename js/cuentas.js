@@ -20,11 +20,25 @@ window.SFCuentas = (() => {
   const MODO = config.url && config.key ? 'supabase' : 'local';
   const ORIGEN = window.location.origin;
 
+  // La librería oficial de Supabase la sirve nuestro backend (GET /vendor/supabase.js).
+  // Si falla (sin conexión), el siguiente intento vuelve a pedirla.
+  function cargarLibreria() {
+    if (window.supabase && window.supabase.createClient) return Promise.resolve(window.supabase);
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = '/vendor/supabase.js';
+      script.async = true;
+      script.onload = () => (window.supabase && window.supabase.createClient ? resolve(window.supabase) : reject(new Error('librería incompleta')));
+      script.onerror = () => { script.remove(); reject(new Error('sin conexión')); };
+      document.head.appendChild(script);
+    });
+  }
+
   let clientePromesa = null;
   function cliente() {
     if (MODO !== 'supabase') return Promise.resolve(null);
     if (!clientePromesa) {
-      clientePromesa = import('https://esm.sh/@supabase/supabase-js@2')
+      clientePromesa = cargarLibreria()
         .then(({ createClient }) => createClient(config.url, config.key, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         }))
@@ -122,16 +136,22 @@ window.SFCuentas = (() => {
     SF.logout();
   }
 
-  /** En las páginas de la app: comprueba que la sesión de Supabase siga viva. */
+  /**
+   * En las páginas de la app: comprueba que la sesión de Supabase siga viva.
+   * Devuelve true (válida), false (no hay sesión o es de otra cuenta) o
+   * null (no se pudo comprobar: sin conexión o Supabase no cargó). Con null
+   * la persona sigue trabajando con la copia local y no se cierra su sesión.
+   */
   async function verificarSesion() {
     if (MODO === 'local') return true;
     try {
       const sb = await cliente();
-      const { data } = await sb.auth.getSession();
+      const { data, error } = await sb.auth.getSession();
+      if (error) return null;
       const user = SF.currentUser();
       return Boolean(data.session && user && data.session.user.email === user.email);
     } catch (error) {
-      return false;
+      return null;
     }
   }
 
